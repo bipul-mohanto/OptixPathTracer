@@ -400,10 +400,12 @@ add_subdirectory(08DirectX11Sample)
 add_subdirectory(09HelloRaytracingDX11)
 add_subdirectory(10OpenXROpenGL)
 add_subdirectory(11HelloRaytracingOpenXR)
+add_subdirectory(04HelloRaytracing) #works
 ]]
-add_subdirectory(04HelloRaytracing)
-add_subdirectory(05HelloPathtracing)
-add_subdirectory(05HelloPathtracing_V2)
+
+add_subdirectory(HelloPathtracing)
+#add_subdirectory(HelloPathtracing_V1)
+add_subdirectory(HelloPathtracing_V2)
 #################################################################
 
 # Now that everything is done, indicate that we have finished configuring at least once.

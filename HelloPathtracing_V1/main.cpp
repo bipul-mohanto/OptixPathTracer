@@ -141,8 +141,6 @@ void initLaunchParams(SampleRenderer& pathtracer) {
     params.light.v1 = make_float3(2.f * light_size, 0, 0);
     params.light.v2 = make_float3(0, 0, 2.f * light_size);        
     params.light.normal = normalize(cross(params.light.v1, params.light.v2));
-
-
 }
 
 void loadProbe(ProbeData& probe, std::string hdrFile) {
@@ -157,52 +155,44 @@ void loadProbe(ProbeData& probe, std::string hdrFile) {
     probe.BuildCDF();
 }
 
-void loadColor(){
-
-}
-
 extern "C" int main(int ac, char** av)
 {
     try {
-
-//!------------------------------------------ model section
-          
+        //Model* model = loadOBJ("G:/Raytracing/Projects/VFXRaytracingBuild/Models/sponza/sponza.obj");
+        //Model* model = loadOBJ("G:/Raytracing/Projects/VFXRaytracingBuild/Models/erato/erato-1_mod.obj");
+        //Model* model = loadOBJ("G:/Raytracing/Projects/VFXRaytracingBuild/Models/dragon/dragon_mod.obj");
+        //Model* model = loadOBJ("G:/Raytracing/Projects/VFXRaytracingBuild/Models/dragon/dragon_mod2.obj");
         /*Model* model = new Model();
         Material boxMat;
         addBox(model, boxMat, make_float3(0, 0.5, 0), make_float3(0.5, 0.5, 0.5));
         boxMat.flags |= MATERIAL_FLAG_SHADOW_CATCHER;
-        addBox(model, boxMat, make_float3(0, -0.1, 0), make_float3(4.0, 0.1, 4.0));
-         */
-        //Model* model = loadOBJ("G:/Raytracing/Projects/VFXRaytracingBuild/Models/primitive/cube.obj");
+        addBox(model, boxMat, make_float3(0, -0.1, 0), make_float3(4.0, 0.1, 4.0));*/
 
-        Model* model = loadOBJ("C:/Users/local-admin/Desktop/PRayGround/graphics/crytek_sponza/sponza.obj");
-        //Model* model = loadOBJ("C:/Users/local-admin/Desktop/PRayGround/graphics/San_Miguel/san-miguel.obj");
-
-//!------------------------------------------ environment lighting
+        //Model* model = loadOBJ("C:/Users/local-admin/Desktop/PRayGround/graphics/crytek_sponza/sponza.obj");
+        Model* model = loadOBJ("C:/Users/local-admin/Desktop/PRayGround/graphics/San_Miguel/san-miguel.obj");
+    
         ProbeData probe;
-        loadProbe(probe, "C:/Users/local-admin/Desktop/PRayGround/resources/image/alps_field_4k.hdr");
-        
+        loadProbe(probe, "C:/Users/local-admin/Desktop/PRayGround/resources/image/alps_field_4k.hdr");      
         //loadProbe(probe, "G:/Raytracing/Projects/st_fagans_interior_8k.hdr");
+        
         //loadProbe(probe, "G:/Raytracing/Projects/loft.hdr");
 
-        // ToDO: solid color lighting
+        //Model* model = loadOBJ("G:/Raytracing/Projects/VFXRaytracingBuild/Models/primitive/cube.obj");
+        
+        //camera = sutil::Camera(/*from*/make_float3(-1293.07f, 154.681f, -0.7304f),
+        //    /* at */make_float3(0.f,200.f,0.f),
+        //    /* up */make_float3(0.f,1.f,0.f),
+        //    35,
+        //    1.0f);
 
-//!--------------------------------------------------------- bm: camera inputs
-     //! for crytek-sponza
-     camera = sutil::Camera(/*from*/make_float3(-1293.07f, 154.681f, -0.7304f),
-            /* at */make_float3(0.f,200.f,0.f),
-            /* up */make_float3(0.f,1.f,0.f),
-            35,
-            1.0f);
 
-     //! for san-miguel
-     /*
-     camera = sutil::Camera(make_float3(26, 8, -2),
+        // -10, 2, 0),
+        camera = sutil::Camera(make_float3(26,8,-2), 
             make_float3(0.f,0.f,0.f),
             make_float3(0.f,1.f,0.f),
             35,
             1.0f);
-     */
+
         trackball.setCamera(&camera);
         trackball.setMoveSpeed(10.0f);
         trackball.setReferenceFrame(
@@ -215,19 +205,16 @@ extern "C" int main(int ac, char** av)
         SampleRenderer sample(model);
         sample.setCamera(camera);
 
-//! -----------------------------------------------------------------WINDOW HANDLING 
-        fbSize = make_int2(1200, 1024); // 3840,2160);
+        fbSize = make_int2(1200, 1024);
         sample.resize(fbSize);
 
         initLaunchParams(sample);
         sample.setProbe(probe);
-
-       //? bm: for what?, not working
-       // sample.render();
+        //sample.render();
 
         std::vector<uint32_t> pixels(fbSize.x * fbSize.y);        
 
-        GLFWwindow* window = sutil::initUI("optixPathTracer V2", fbSize.x, fbSize.y);
+        GLFWwindow* window = sutil::initUI("optixPathTracer", fbSize.x, fbSize.y);
  
         glfwSetMouseButtonCallback(window, mouseButtonCallback);
         glfwSetCursorPosCallback(window, cursorPosCallback);
@@ -238,7 +225,7 @@ extern "C" int main(int ac, char** av)
         glfwSetWindowUserPointer(window, &sample.launchParams);
 
         //
-//!---------------------------------------------------------- Render loop
+        // Render loop
         //
         {
             sutil::CUDAOutputBufferType output_buffer_type = sutil::CUDAOutputBufferType::GL_INTEROP;
@@ -286,23 +273,20 @@ extern "C" int main(int ac, char** av)
                 t1 = std::chrono::steady_clock::now();
                 display_time += t1 - t0;
 
-                sutil::displayStats(state_update_time, render_time, display_time, 0,0);
-
+                sutil::displayStats(state_update_time, render_time, display_time,0,0);
 
                 glfwSwapBuffers(window);
 
                 sample.launchParams.frame.subframe_index += 1;
-
+                
 
             } while (!glfwWindowShouldClose(window));
             CUDA_SYNC_CHECK();
         }
 
         sutil::cleanupUI(window);
-        //!--------------------writing data----------------------------------------------------
-        //TODO: fix image saving 
-        /*
-        sample.downloadPixels(pixels.data());
+
+        /*sample.downloadPixels(pixels.data());
 
         sutil::ImageBuffer buffer;
         buffer.data = pixels.data();
@@ -317,9 +301,7 @@ extern "C" int main(int ac, char** av)
         std::cout 
             << std::endl
             << "Image rendered, and saved to " << fileName << " ... done." << std::endl            
-            << std::endl;
-            */
-        //----------------------------------------------------------------------------
+            << std::endl;*/
     }
     catch (std::runtime_error& e) {
         std::cout  << "FATAL ERROR: " << e.what() << std::endl;

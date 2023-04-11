@@ -65,16 +65,16 @@ struct LaunchParams
         uint3 factor;
         int fillSize;
 
-        uint2 c;
+        uint2 c; //center of foveation
         float r_inner, r_outer;
 
         uint2 offset;
 
         unsigned int redraw;
 
-        //!test
+        //!bm:test
         //unsigned int seed_test;
-        uint2 pathLengths;
+        //uint2 pathLengths;
 
 
     } frame;
@@ -91,12 +91,7 @@ struct LaunchParams
     OptixTraversableHandle traversable;
     ParallelogramLight     light;
 
-    Probe probe;
-
-    //test
-    //unsigned int seed_tea;
-
-
+    Probe probe; //bm: what is the elaboration of Probe? probability?
 };
 
 struct RayGenData

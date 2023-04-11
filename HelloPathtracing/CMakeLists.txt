@@ -2,7 +2,7 @@ cuda_add_library(toneMap
   toneMap.cu
   toneMap.h)
 
-OPTIX_add_sample_executable(05HelloPathtracing target_name
+OPTIX_add_sample_executable(HelloPathtracing target_name
   ${SAMPLES_CUDA_DIR}/helpers.h
   LaunchParams.h
   main.cpp

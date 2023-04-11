@@ -12,28 +12,28 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. //
 // See the License for the specific language governing permissions and      //
 // limitations under the License.                                           //
-// ======================================================================== //
-
-#include<device_launch_parameters.h> //bm, for better cuda code visualization
+//======================================================================== //
+//bm, for better cuda code syntax visualization
+#include "cuda_runtime.h"
+#include<device_launch_parameters.h> 
 
 #include <optix_device.h>
+
+// in-folder
 #include <random.h>
-
 #include <cuda/helpers.h>
-
 #include <sutil/vec_math.h>
-
 #include "LaunchParams.h"
-  
 #include "Disney.cuh"
-
 #include "maths.h"
 
+//bm
+//#include <texture_indirect_functions.h>
 
 //#define USE_JITTERED_UNIFORM
 #define USE_STRATIFIED
-#define kProbeSamples 1.f
-#define kBsdfSamples 1.f
+#define kProbeSamples 1.f //k for constant? 
+#define kBsdfSamples 1.f // why?
 
 /*! launch parameters in constant memory, filled in by optix upon
     optixLaunch (this gets filled in from the buffer we pass to
@@ -42,15 +42,15 @@ extern "C" {
      __constant__ LaunchParams params;
 }
 
-//------------------------------------------------------------------------------
+//--------------------------------------------------------------------------
 //
 //
-//
-//------------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 
-const int RAY_STATE_FLAGS_DONE               = 1 << 0;
-const int RAY_STATE_FLAGS_SECONDARY_RAY      = 1 << 1;
-const int RAY_STATE_FLAGS_SHADOW_RAY         = 1 << 2;
+const int RAY_STATE_FLAGS_DONE               = 1 << 0;//1, why
+const int RAY_STATE_FLAGS_SECONDARY_RAY      = 1 << 1;//2, why
+//const int RAY_STATE_FLAGS_SHADOW_RAY       = 1 << 2;//4
+//the secondary ray is the shadow ray, no use of this value at this moment 
 
 struct RadiancePRD
 {
@@ -65,11 +65,14 @@ struct RadiancePRD
 
     float4       lightSamples;
 
-    float bsdfPdf = 1.0f;
+
+    float bsdfPdf = 1.0f;    // why???
     float3 pathThroughput;
     float rayEta = 1.0f;
     float3 rayAbsorption;
     BSDFType rayType = eReflected;    //Disney
+    //BSDFType rayType = eSpecular;
+    
 
     int depth;
     int stateFlags = 0;
@@ -253,7 +256,8 @@ extern "C" __global__ void __closesthit__occlusion()
 
 extern "C" __global__ void __miss__occlusion()
 { 
-    setPayloadOcclusion(false);
+    setPayloadOcclusion(false); //bm: occlusion implementation missing???
+    // true not working
 }
 
 //! light sampling? explicit or implicit?
@@ -344,7 +348,7 @@ static __device__ __forceinline__ float3 SampleShadow(const Material& material, 
 
 
 //------------------------------------------------------------------------------
-// ray gen program - the actual rendering happens in here
+// ray gen program - the actual rendering happens in here, all the shaders gradually
 //------------------------------------------------------------------------------
 extern "C" __global__ void __raygen__renderFrame()
 {
@@ -356,12 +360,17 @@ extern "C" __global__ void __raygen__renderFrame()
     const float3 W = params.camera.W;
     uint3  idx = optixGetLaunchIndex();
     const unsigned int    subframe_index = params.frame.subframe_index;
-      
-    int samples_per_launch = (subframe_index == 0) ? 4 : params.samples_per_launch;
+
+    // bm: this was wrong, made foveated region 4spp, replaced with next statement, before i value  
+    //int samples_per_launch = (subframe_index == 0) ? 4 : params.samples_per_launch;
+
+    int samples_per_launch = params.samples_per_launch;
     int i = samples_per_launch;
 
 //! ------------------------- random seed generator
      unsigned int seed = tea<4>(idx.y * w + idx.x, subframe_index);
+
+     // bm: others, tea<4> however is the best so far, later will come back to this
     //unsigned int cc = idx.y * w + idx.x;
     //unsigned int seed = lcg2(cc);
 
@@ -385,22 +394,23 @@ extern "C" __global__ void __raygen__renderFrame()
 
     }
         
-
+    // bm: requires for denoising, else no use I see so far
     float3 normal = make_float3(0.f);
     float3 albedo = make_float3(0.f);
     float3 alpha = make_float3(0.f);    
+
 
     float3 backplate = make_float3(0.f);   //result
 
     
     do
     {        
-        float3 directLight = make_float3(0.f);
-        float3 indirectLight = make_float3(0.f);
+        float3 directLight = make_float3(0.0f); // bm: can add effect 
+        float3 indirectLight = make_float3(0.0f);
 
         RadiancePRD prd;
         
-        prd.radiance = make_float3(0.f);        
+        prd.radiance = make_float3(0.f); //bm: effect         
         prd.alpha = make_float3(0.f);
 //!------------------------------------------sampling pattern? random?
         prd.seed = seed;
@@ -410,20 +420,21 @@ extern "C" __global__ void __raygen__renderFrame()
         //! test
         
 //--------------------------------------------------------
-        prd.rayEta = 1.0f;
-        prd.pathThroughput = make_float3(1.f);
-        prd.rayAbsorption = make_float3(0.0f);
+        prd.rayEta = 1.0f;// bm: 1 was previous value
+        prd.pathThroughput = make_float3(1.f); //??? 
+        prd.rayAbsorption = make_float3(0.f);// bm: effect has
         prd.bsdfPdf = 1.0f;
         prd.normal = make_float3(0.0f);
         prd.albedo = make_float3(0.0f);
         prd.stateFlags = 0;
-        prd.depth = 0;
+        prd.depth = 1;
 
         //!---------------------------------- anti-aliasing
         // The center of each pixel is at fraction (0.5,0.5)
    
         const float2 subpixel_jitter = make_float2(rnd(seed), rnd(seed));
         
+        // with anti-aliasing 
         float2 d = 2.0f * make_float2(
             (static_cast<float>(idx.x) + subpixel_jitter.x) / static_cast<float>(w),
             (static_cast<float>(idx.y) + subpixel_jitter.y) / static_cast<float>(h)
@@ -433,7 +444,7 @@ extern "C" __global__ void __raygen__renderFrame()
         //! bm: without anti-aliasing
         //float2 d =2.0f* make_float2(static_cast<float>(idx.x) / static_cast<float>(w), static_cast<float>(idx.y) / static_cast<float>(h))-1.0f;
 
-        // previously sv commented
+        // previously already sv commented
         /*float3 ray_origin;
         if (idx.x < w / 2.0f)
         {
@@ -469,12 +480,12 @@ extern "C" __global__ void __raygen__renderFrame()
             }           
             
 
-            //! ray bounce termination
+            //! bmray bounce termination (VVI)
             
             if ((prd.stateFlags & RAY_STATE_FLAGS_DONE) || prd.depth >= 3)
                 break;
          
-            //  TODO RR, variable for depth
+            //!TODO RR, variable for depth
 
 // bm (RR )
             /*
@@ -512,7 +523,7 @@ extern "C" __global__ void __raygen__renderFrame()
     albedo /= static_cast<float>(samples_per_launch);
     alpha /= static_cast<float>(samples_per_launch);
 
-    //! sv
+    //! sv (foveation related)
     for (int i = 0; i < params.frame.fillSize; ++i) {
         for (int j = 0; j < params.frame.fillSize; ++j) {
  
@@ -564,7 +575,7 @@ extern "C" __global__ void __closesthit__radiance()
     const float3 v0 = sbtData.vertex[index.x];
     const float3 v1 = sbtData.vertex[index.y];
     const float3 v2 = sbtData.vertex[index.z];
-    const float3 N_0 = normalize(cross(v1 - v0, v2 - v0));
+    const float3 N_0 = normalize(cross(v1 - v0, v2 - v0)); //the great normal vector 
 
     float3 N = faceforward(N_0, -ray_dir, N_0);
 
@@ -577,6 +588,7 @@ extern "C" __global__ void __closesthit__radiance()
 
     RadiancePRD* prd = getPRD<RadiancePRD>();
 
+    // bm: what is happening here?
     if ((sbtData.material.flags & MATERIAL_FLAG_SHADOW_CATCHER) != 0 && (prd->stateFlags & RAY_STATE_FLAGS_SECONDARY_RAY) != 0) {
         prd->origin = P;
         prd->direction = ray_dir;
@@ -594,8 +606,11 @@ extern "C" __global__ void __closesthit__radiance()
             + u * sbtData.texcoord[index.y]
             + v * sbtData.texcoord[index.z];
 
+        // bm: why????
         float4 fromTexture = tex2D<float4>(sbtData.texture, tc.x, tc.y);
         prd->albedo = make_float3(fromTexture);
+
+        //bm: instead of texture, solid color used for the object below
         //prd->albedo = make_float3(1.f,0.f,0.f);
     }
     float& bsdfPdf = prd->bsdfPdf;    
@@ -612,9 +627,9 @@ extern "C" __global__ void __closesthit__radiance()
         outAbsorption = make_float3(0.0f);
     }
 
+    // bm: was commented from previously
     // update throughput based on absorption through the medium
     //prd->pathThroughput *= exp(-prd->rayAbsorption * rayTime);    
-
     //float3 lightValue = SampleLights(sbtData.material, prd->rayEta, outEta, P, N, -ray_dir, prd->rand);
     //prd->radiance += prd->pathThroughput * clamp(lightValue, make_float3(0), make_float3(2));
 
@@ -627,7 +642,7 @@ extern "C" __global__ void __closesthit__radiance()
         float3 shadowSample = SampleShadow(sbtData.material, prd->albedo, prd->rayEta, outEta, P, N, -ray_dir, prd->rand);
         prd->alpha += prd->pathThroughput * shadowSample;
     }
-
+    // bm: previously commented
     //float3 lightSample = SampleShadow(sbtData.material, prd->rayEta, outEta, P, N, -ray_dir, prd->rand);
     //prd->radiance += prd->pathThroughput * lightSample;
 

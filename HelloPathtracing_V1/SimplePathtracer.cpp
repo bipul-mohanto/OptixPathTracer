@@ -17,8 +17,7 @@
 #include <sutil/Matrix.h>
 #include <sutil/vec_math.h>
 
-//! bm
-//#include "toneMap.h"
+#include "toneMap.h"
 
 template <typename T>
 struct SbtRecord
@@ -73,35 +72,19 @@ SampleRenderer::SampleRenderer(const Model* model)
 
 void SampleRenderer::render()
 {
-// sanity check: make sure we launch only after first resize is already done:
-    
-    if (launchParams.frame.size.x == 0) 
-        return;
+    // sanity check: make sure we launch only after first resize is
+    // already done:
+    if (launchParams.frame.size.x == 0) return;
 
-    //! non-foveation
- /*
     launchParamsBuffer.upload(&launchParams, 1);
-    launchParams.frame.factor = make_uint3(1, 1, 1);
-    launchParams.frame.fillSize = 1;
-    launchParams.frame.c = make_uint2(512, 512);// launchParams.c.x, launchParams.c.y);//512, 512);
-    launchParams.frame.r_outer = 1000000000;
-    launchParams.frame.r_inner = 0;//356;//200; outer_radius 
-    launchParams.samples_per_launch = 2;
-    launchParams.frame.offset = make_uint2(0, 0);
-    launchParams.frame.redraw = 0;
 
-    launchParams.frame.pathLengths = make_uint2(2, 10);
-
-    //! bm: no difference
-    //int temp_frame = launchParams.frame.subframe_index;
-           
-    OPTIX_CHECK(optixLaunch( //! pipeline we're launching launch:
+    OPTIX_CHECK(optixLaunch(/*! pipeline we're launching launch: */
         pipeline, stream,
-        // parameters and SBT 
+        /*! parameters and SBT */
         launchParamsBuffer.d_pointer(),
         launchParamsBuffer.sizeInBytes,
         &sbt,
-        // dimensions of the launch: 
+        /*! dimensions of the launch: */
         launchParams.frame.size.x,
         launchParams.frame.size.y,
         1
@@ -110,97 +93,7 @@ void SampleRenderer::render()
     // display (obviously, for a high-performance application you
     // want to use streams and double-buffering, but for this simple
     // example, this will have to do)
-
-    //! bm: no difference
-    //launchParams.frame.subframe_index = temp_frame;
-
-    //launchParams.frame.subframe_index++;
-
-
     CUDA_SYNC_CHECK();
-*/  
-
-//! foveation
-//! sv   
-    //? Prob:
-    
-
-    //? Prob: 
-    launchParams.frame.factor = make_uint3(4, 4, 1);
-    launchParams.frame.fillSize = 4;
-    launchParams.frame.c = make_uint2(512,512);// launchParams.c.x, launchParams.c.y);//512, 512);
-    //launchParams.frame.c = make_uint2(5120, 5120);// launchParams.c.x, 
-    launchParams.frame.r_outer = 1000000000;
-    launchParams.frame.r_inner = 200;//356;//200; outer_radius 
-    launchParams.samples_per_launch = 2;
-    launchParams.frame.offset = make_uint2(0, 0);
-    launchParams.frame.redraw = 0;
-
-    launchParamsBuffer.upload(&launchParams, 1);
-
-    OPTIX_CHECK(optixLaunch(
-        pipeline,
-        stream,
-        launchParamsBuffer.d_pointer(),
-        launchParamsBuffer.sizeInBytes,
-        &sbt,
-        launchParams.frame.size.x / 4,   // launch width
-        launchParams.frame.size.y / 4,  // launch height
-        1                     // launch depth
-    ));
-
-    int temp_frame = launchParams.frame.subframe_index;  
-    
-    launchParams.frame.subframe_index = 0;
-    launchParams.frame.factor = make_uint3(2, 2, 1);
-    launchParams.frame.fillSize = 2;
-    launchParams.frame.r_outer = 202;
-    launchParams.frame.r_inner = 100;//356;//200; outer_radius 
-    launchParams.samples_per_launch = 4;
-    launchParams.frame.offset = make_uint2(launchParams.frame.c.x - 202 , launchParams.frame.c.y - 202 );
-    launchParams.frame.redraw = 1;
-
-    launchParamsBuffer.upload(&launchParams, 1);
-
-    OPTIX_CHECK(optixLaunch(
-        pipeline,
-        stream, 
-        launchParamsBuffer.d_pointer(),
-        launchParamsBuffer.sizeInBytes,
-        &sbt,
-        launchParams.frame.r_outer,   // launch width
-        launchParams.frame.r_outer,  // launch height
-        1                     // launch depth
-    ));
-    
-    
-    
-    launchParams.frame.factor = make_uint3(1, 1, 1);
-    launchParams.frame.fillSize = 1;
-    launchParams.frame.r_outer = 101 ;// 158;//101; //inner_radius
-    launchParams.frame.r_inner = 0;
-    launchParams.samples_per_launch = 16; 
-    launchParams.frame.offset = make_uint2(launchParams.frame.c.x - 101 , launchParams.frame.c.y - 101);//  - 158,  - 158);
-    launchParams.frame.redraw = 1;
-
-    launchParamsBuffer.upload(&launchParams, 1);
-
-    OPTIX_CHECK(optixLaunch(
-        pipeline,
-        stream,
-        launchParamsBuffer.d_pointer(),
-        launchParamsBuffer.sizeInBytes,
-        &sbt,
-        launchParams.frame.r_outer * 2,   // launch width
-        launchParams.frame.r_outer * 2,  // launch height
-        1                     // launch depth
-    ));
-    
-    launchParams.frame.subframe_index = temp_frame;
-    launchParams.frame.subframe_index++;
-    
-    CUDA_SYNC_CHECK();   
-          
 }
 
 void SampleRenderer::render(sutil::CUDAOutputBuffer<uint32_t> &renderTarget)
@@ -234,7 +127,6 @@ void SampleRenderer::resize(const int2& newSize)
 
     // update the launch parameters that we'll pass to the optix
     // launch:
-
     launchParams.frame.size = newSize;
     launchParams.frame.frame_buffer = (uchar4*)frame_buffer.d_ptr;
     launchParams.frame.accum_buffer = (float4*)accum_buffer.d_ptr;
@@ -324,8 +216,6 @@ void SampleRenderer::createModule()
     pipelineCompileOptions = {};
 
     moduleCompileOptions = {};
-
-    //! bm
     moduleCompileOptions.maxRegisterCount = OPTIX_COMPILE_DEFAULT_MAX_REGISTER_COUNT;
     moduleCompileOptions.optLevel = OPTIX_COMPILE_OPTIMIZATION_DEFAULT;
     moduleCompileOptions.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_DEFAULT;
@@ -339,7 +229,7 @@ void SampleRenderer::createModule()
 
     
     size_t      inputSize = 0;
-    const char* ptx = sutil::getInputData(OPTIX_SAMPLE_NAME, OPTIX_SAMPLE_DIR, "deviceProgram.cu", inputSize); //C:/Users/local-admin/Desktop/optixpathtracer/05HelloPathtracing_V2/
+    const char* ptx = sutil::getInputData(OPTIX_SAMPLE_NAME, OPTIX_SAMPLE_DIR, "deviceProgram.cu", inputSize);
 
     char log[2048];
     size_t sizeof_log = sizeof(log);

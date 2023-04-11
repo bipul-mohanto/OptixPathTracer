@@ -71,6 +71,12 @@ struct LaunchParams
         uint2 offset;
 
         unsigned int redraw;
+
+        //!test
+        //unsigned int seed_test;
+        uint2 pathLengths;
+
+
     } frame;
     
     struct {
@@ -86,6 +92,10 @@ struct LaunchParams
     ParallelogramLight     light;
 
     Probe probe;
+
+    //test
+    //unsigned int seed_tea;
+
 
 };
 

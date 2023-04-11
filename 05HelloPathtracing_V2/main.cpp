@@ -157,44 +157,52 @@ void loadProbe(ProbeData& probe, std::string hdrFile) {
     probe.BuildCDF();
 }
 
+void loadColor(){
+
+}
+
 extern "C" int main(int ac, char** av)
 {
     try {
-        //Model* model = loadOBJ("G:/Raytracing/Projects/VFXRaytracingBuild/Models/sponza/sponza.obj");
-        //Model* model = loadOBJ("G:/Raytracing/Projects/VFXRaytracingBuild/Models/erato/erato-1_mod.obj");
-        //Model* model = loadOBJ("G:/Raytracing/Projects/VFXRaytracingBuild/Models/dragon/dragon_mod.obj");
-        //Model* model = loadOBJ("G:/Raytracing/Projects/VFXRaytracingBuild/Models/dragon/dragon_mod2.obj");
+
+//!------------------------------------------ model section
+          
         /*Model* model = new Model();
         Material boxMat;
         addBox(model, boxMat, make_float3(0, 0.5, 0), make_float3(0.5, 0.5, 0.5));
         boxMat.flags |= MATERIAL_FLAG_SHADOW_CATCHER;
-        addBox(model, boxMat, make_float3(0, -0.1, 0), make_float3(4.0, 0.1, 4.0));*/
+        addBox(model, boxMat, make_float3(0, -0.1, 0), make_float3(4.0, 0.1, 4.0));
+         */
+        //Model* model = loadOBJ("G:/Raytracing/Projects/VFXRaytracingBuild/Models/primitive/cube.obj");
 
         Model* model = loadOBJ("C:/Users/local-admin/Desktop/PRayGround/graphics/crytek_sponza/sponza.obj");
         //Model* model = loadOBJ("C:/Users/local-admin/Desktop/PRayGround/graphics/San_Miguel/san-miguel.obj");
-    
+
+//!------------------------------------------ environment lighting
         ProbeData probe;
-        loadProbe(probe, "C:/Users/local-admin/Desktop/PRayGround/resources/image/alps_field_4k.hdr");      
-        //loadProbe(probe, "G:/Raytracing/Projects/st_fagans_interior_8k.hdr");
+        loadProbe(probe, "C:/Users/local-admin/Desktop/PRayGround/resources/image/alps_field_4k.hdr");
         
+        //loadProbe(probe, "G:/Raytracing/Projects/st_fagans_interior_8k.hdr");
         //loadProbe(probe, "G:/Raytracing/Projects/loft.hdr");
 
-        //Model* model = loadOBJ("G:/Raytracing/Projects/VFXRaytracingBuild/Models/primitive/cube.obj");
-        
-        //camera = sutil::Camera(/*from*/make_float3(-1293.07f, 154.681f, -0.7304f),
-        //    /* at */make_float3(0.f,200.f,0.f),
-        //    /* up */make_float3(0.f,1.f,0.f),
-        //    35,
-        //    1.0f);
+        // ToDO: solid color lighting
 
-        //! bm: camera inputs
-        //! san-miguel 
-        camera = sutil::Camera(make_float3(26, 8, -2),
+//!--------------------------------------------------------- bm: camera inputs
+     //! for crytek-sponza
+     camera = sutil::Camera(/*from*/make_float3(-1293.07f, 154.681f, -0.7304f),
+            /* at */make_float3(0.f,200.f,0.f),
+            /* up */make_float3(0.f,1.f,0.f),
+            35,
+            1.0f);
+
+     //! for san-miguel
+     /*
+     camera = sutil::Camera(make_float3(26, 8, -2),
             make_float3(0.f,0.f,0.f),
             make_float3(0.f,1.f,0.f),
             35,
             1.0f);
-
+     */
         trackball.setCamera(&camera);
         trackball.setMoveSpeed(10.0f);
         trackball.setReferenceFrame(
@@ -207,16 +215,19 @@ extern "C" int main(int ac, char** av)
         SampleRenderer sample(model);
         sample.setCamera(camera);
 
-        fbSize = make_int2(1200, 1024);
+//! -----------------------------------------------------------------WINDOW HANDLING 
+        fbSize = make_int2(1200, 1024); // 3840,2160);
         sample.resize(fbSize);
 
         initLaunchParams(sample);
         sample.setProbe(probe);
-        //sample.render();
+
+       //? bm: for what?, not working
+       // sample.render();
 
         std::vector<uint32_t> pixels(fbSize.x * fbSize.y);        
 
-        GLFWwindow* window = sutil::initUI("optixPathTracer", fbSize.x, fbSize.y);
+        GLFWwindow* window = sutil::initUI("optixPathTracer V2", fbSize.x, fbSize.y);
  
         glfwSetMouseButtonCallback(window, mouseButtonCallback);
         glfwSetCursorPosCallback(window, cursorPosCallback);
@@ -227,7 +238,7 @@ extern "C" int main(int ac, char** av)
         glfwSetWindowUserPointer(window, &sample.launchParams);
 
         //
-        // Render loop
+//!---------------------------------------------------------- Render loop
         //
         {
             sutil::CUDAOutputBufferType output_buffer_type = sutil::CUDAOutputBufferType::GL_INTEROP;
@@ -277,6 +288,7 @@ extern "C" int main(int ac, char** av)
 
                 sutil::displayStats(state_update_time, render_time, display_time, 0,0);
 
+
                 glfwSwapBuffers(window);
 
                 sample.launchParams.frame.subframe_index += 1;
@@ -287,8 +299,10 @@ extern "C" int main(int ac, char** av)
         }
 
         sutil::cleanupUI(window);
-
-        /*sample.downloadPixels(pixels.data());
+        //!--------------------writing data----------------------------------------------------
+        //TODO: fix image saving 
+        /*
+        sample.downloadPixels(pixels.data());
 
         sutil::ImageBuffer buffer;
         buffer.data = pixels.data();
@@ -303,7 +317,9 @@ extern "C" int main(int ac, char** av)
         std::cout 
             << std::endl
             << "Image rendered, and saved to " << fileName << " ... done." << std::endl            
-            << std::endl;*/
+            << std::endl;
+            */
+        //----------------------------------------------------------------------------
     }
     catch (std::runtime_error& e) {
         std::cout  << "FATAL ERROR: " << e.what() << std::endl;

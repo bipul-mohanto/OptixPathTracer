@@ -71,6 +71,13 @@ struct CUDABuffer {
         assert(sizeInBytes == count*sizeof(T));
         CUDA_CHECK(cudaMemcpy(d_ptr, (void *)t,
                         count*sizeof(T), cudaMemcpyHostToDevice));
+
+        /*CUDA_CHECK(cudaMemcpyAsync(
+            reinterpret_cast<void*>(d_ptr),
+            (void*)t,
+            count * sizeof(T),
+            cudaMemcpyHostToDevice
+        ));*/
     }
     
     template<typename T>

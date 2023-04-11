@@ -30,10 +30,13 @@
 #include <sutil/Camera.h>
 #include <sutil/Matrix.h>
 
-// ImGui
-#include <C:/Users/local-admin/Desktop/optixpathtracer/support/imgui/imgui.h>
-#include <C:/Users/local-admin/Desktop/optixpathtracer/support/imgui/imgui_impl_glfw.h>
-#include <C:/Users/local-admin/Desktop/optixpathtracer/support/imgui/imgui_impl_opengl3.h>
+#include "maths.h"
+
+//! bm
+/*! ImGui: to replace sutil::display 
+//#include <C:/Users/local-admin/Desktop/optixpathtracer/support/imgui/imgui.h>
+//#include <C:/Users/local-admin/Desktop/optixpathtracer/support/imgui/imgui_impl_glfw.h>
+//#include <C:/Users/local-admin/Desktop/optixpathtracer/support/imgui/imgui_impl_opengl3.h>
 
 
 /*! a sample OptiX-7 renderer that demonstrates how to set up
@@ -141,6 +144,9 @@ class SampleRenderer
         them on the device */
     LaunchParams launchParams;
     CUDABuffer   launchParamsBuffer;
+
+    //CUDABuffer   launchParamsBuffer1;
+    //CUDABuffer   launchParamsBuffer2;
     /*! @} */
 
     CUDABuffer frame_buffer;

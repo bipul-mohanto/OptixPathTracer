@@ -22,6 +22,7 @@ OPTIX_add_sample_executable(05HelloPathtracing_V2 target_name
   deviceProgram.cu  
   Probe.cuh
   Disney.cuh
+#bm
   toneMap.cu
   toneMap.h
   

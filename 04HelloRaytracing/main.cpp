@@ -145,7 +145,7 @@ extern "C" int main(int ac, char** av)
 
         SampleRenderer sample(model);
         sample.setCamera(camera);
-
+//! -----------------------------------------------------------------WINDOW HANDLING
         fbSize = make_int2(1200, 1024);
         sample.resize(fbSize);
         sample.render();
@@ -206,7 +206,7 @@ extern "C" int main(int ac, char** av)
                 t1 = std::chrono::steady_clock::now();
                 display_time += t1 - t0;
 
-                sutil::displayStats(state_update_time, render_time, display_time);
+                sutil::displayStats(state_update_time, render_time, display_time,0,0);
 
                 glfwSwapBuffers(window);
 

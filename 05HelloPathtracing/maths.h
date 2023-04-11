@@ -237,7 +237,7 @@ CUDA_CALLABLE CUDA_INLINE float3 UniformSampleSphere(float u1, float u2)
 }
 
 
-
+//! adventure
 CUDA_CALLABLE CUDA_INLINE float3 UniformSampleHemisphere(Random& rand)
 {
 	// generate a random z value
@@ -273,3 +273,42 @@ CUDA_CALLABLE CUDA_INLINE float3 CosineSampleHemisphere(float u1, float u2)
 
 	return make_float3(s.x, s.y, z);
 }
+
+/*
+
+	class UniformSampler {
+	public:
+		static HOSTDEVICE float get1D(uint32_t& prev)
+		{
+			return rnd(prev);
+		}
+
+		static HOSTDEVICE Vec2f get2D(uint32_t& prev)
+		{
+			return Vec2f{rnd(prev), rnd(prev)};
+		}
+
+		static HOSTDEVICE Vec3f get3D(uint32_t& prev)
+		{
+			return Vec3f{rnd(prev), rnd(prev), rnd(prev)};
+		}
+	};
+
+	class SobolSampler {
+	public:
+		static HOSTDEVICE float get1D(uint32_t& prev)
+		{
+			return rnd(prev);
+		}
+
+		static HOSTDEVICE Vec2f get2D(uint32_t& prev)
+		{
+			return Vec2f{rnd(prev), rnd(prev)};
+		}
+
+		static HOSTDEVICE Vec3f get3D(uint32_t& prev)
+		{
+			return Vec3f{rnd(prev), rnd(prev), rnd(prev)};
+		}
+	};
+*/

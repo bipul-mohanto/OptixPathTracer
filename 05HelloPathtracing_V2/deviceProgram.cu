@@ -14,6 +14,8 @@
 // limitations under the License.                                           //
 // ======================================================================== //
 
+#include<device_launch_parameters.h> //bm, for better cuda code visualization
+
 #include <optix_device.h>
 #include <random.h>
 
@@ -24,6 +26,9 @@
 #include "LaunchParams.h"
   
 #include "Disney.cuh"
+
+#include "maths.h"
+
 
 //#define USE_JITTERED_UNIFORM
 #define USE_STRATIFIED
@@ -64,13 +69,15 @@ struct RadiancePRD
     float3 pathThroughput;
     float rayEta = 1.0f;
     float3 rayAbsorption;
-    BSDFType rayType = eReflected;    
+    BSDFType rayType = eReflected;    //Disney
 
     int depth;
     int stateFlags = 0;
 
     unsigned int seed;
     Random       rand;
+
+   
 };
 
 
@@ -249,6 +256,7 @@ extern "C" __global__ void __miss__occlusion()
     setPayloadOcclusion(false);
 }
 
+//! light sampling? explicit or implicit?
 static __device__ __forceinline__ float3 SampleLights(const Material& material, float3 albedo, const float etaI, const float etaO, const float3& surfacePos, const float3& surfaceNormal, const float3& wo, Random& rand)
 {
     float3 sum = make_float3(0.0f);
@@ -291,6 +299,7 @@ static __device__ __forceinline__ float3 SampleLights(const Material& material, 
     return sum;
 }
 
+//! Random?
 static __device__ __forceinline__ float3 SampleShadow(const Material& material, float3 albedo, const float etaI, const float etaO, const float3& surfacePos, const float3& surfaceNormal, const float3& wo, Random& rand)
 {
     float3 sum = make_float3(0.0f);
@@ -348,10 +357,21 @@ extern "C" __global__ void __raygen__renderFrame()
     uint3  idx = optixGetLaunchIndex();
     const unsigned int    subframe_index = params.frame.subframe_index;
       
+    int samples_per_launch = (subframe_index == 0) ? 4 : params.samples_per_launch;
+    int i = samples_per_launch;
 
+//! ------------------------- random seed generator
+     unsigned int seed = tea<4>(idx.y * w + idx.x, subframe_index);
+    //unsigned int cc = idx.y * w + idx.x;
+    //unsigned int seed = lcg2(cc);
 
-    unsigned int seed = tea<4>(idx.y * w + idx.x, subframe_index);
+    //unsigned int seed = lcg2(cc);
 
+    //unsigned int seed = rnd(cc);
+
+    //unsigned int seed = rot_seed(cc, subframe_index);
+    
+//-------------------------------------------------------
     float3 result = make_float3(0.0f);
 
 
@@ -359,6 +379,7 @@ extern "C" __global__ void __raygen__renderFrame()
     idx = idx * params.frame.factor + make_uint3(params.frame.offset, 0);
 
     float range = length(make_float3(idx) - make_float3(make_uint3(params.frame.c, 0)));
+
     if (range < params.frame.r_inner || range > params.frame.r_outer) {
         return;
 
@@ -369,24 +390,26 @@ extern "C" __global__ void __raygen__renderFrame()
     float3 albedo = make_float3(0.f);
     float3 alpha = make_float3(0.f);    
 
-    float3 backplate = make_float3(0.f);   
+    float3 backplate = make_float3(0.f);   //result
 
-    int samples_per_launch = (subframe_index == 0) ? 4 : params.samples_per_launch;
-    int i = samples_per_launch;   
-
+    
     do
     {        
-        float3 directLight = make_float3(0.0f);
-        float3 indirectLight = make_float3(0.0f);
+        float3 directLight = make_float3(0.f);
+        float3 indirectLight = make_float3(0.f);
 
         RadiancePRD prd;
         
         prd.radiance = make_float3(0.f);        
         prd.alpha = make_float3(0.f);
-
+//!------------------------------------------sampling pattern? random?
         prd.seed = seed;
-        prd.rand = Random(seed);
 
+        prd.rand = Random(seed);
+ 
+        //! test
+        
+//--------------------------------------------------------
         prd.rayEta = 1.0f;
         prd.pathThroughput = make_float3(1.f);
         prd.rayAbsorption = make_float3(0.0f);
@@ -396,14 +419,21 @@ extern "C" __global__ void __raygen__renderFrame()
         prd.stateFlags = 0;
         prd.depth = 0;
 
+        //!---------------------------------- anti-aliasing
         // The center of each pixel is at fraction (0.5,0.5)
+   
         const float2 subpixel_jitter = make_float2(rnd(seed), rnd(seed));
-
+        
         float2 d = 2.0f * make_float2(
             (static_cast<float>(idx.x) + subpixel_jitter.x) / static_cast<float>(w),
             (static_cast<float>(idx.y) + subpixel_jitter.y) / static_cast<float>(h)
         ) - 1.0f;        
+        
 
+        //! bm: without anti-aliasing
+        //float2 d =2.0f* make_float2(static_cast<float>(idx.x) / static_cast<float>(w), static_cast<float>(idx.y) / static_cast<float>(h))-1.0f;
+
+        // previously sv commented
         /*float3 ray_origin;
         if (idx.x < w / 2.0f)
         {
@@ -432,15 +462,33 @@ extern "C" __global__ void __raygen__renderFrame()
                 0.001f,  // tmin       // TODO: smarter offset
                 1e16f,  // tmax
                 &prd);
-
+            
             if (prd.depth == 0.f) {
                 normal += prd.normal;
                 albedo += prd.albedo;               
             }           
+            
 
-            if ((prd.stateFlags & RAY_STATE_FLAGS_DONE) || prd.depth >= 3) // TODO RR, variable for depth
+            //! ray bounce termination
+            
+            if ((prd.stateFlags & RAY_STATE_FLAGS_DONE) || prd.depth >= 3)
                 break;
+         
+            //  TODO RR, variable for depth
 
+// bm (RR )
+            /*
+            RadiancePRD* prd = getPRD<RadiancePRD>();
+            
+            if (params.frame.pathLengths.x <= 3) {
+                const float probability = fmax(prd->pathThroughput);
+                if (probability < rnd(seed)) {
+                    break;
+                }
+                prd->pathThroughput /= probability;
+            }
+            */
+            
             if (prd.depth == 0) {
                 directLight += prd.radiance;
             }
@@ -449,9 +497,10 @@ extern "C" __global__ void __raygen__renderFrame()
             }
 
             ++prd.depth;
-
+            
             ray_origin = prd.origin;
             ray_direction = prd.direction;                        
+            
         }
 
         result += directLight + indirectLight;
@@ -459,20 +508,24 @@ extern "C" __global__ void __raygen__renderFrame()
 
     } while (--i);
 
+    normal /= static_cast<float>(samples_per_launch);
+    albedo /= static_cast<float>(samples_per_launch);
+    alpha /= static_cast<float>(samples_per_launch);
+
     //! sv
     for (int i = 0; i < params.frame.fillSize; ++i) {
         for (int j = 0; j < params.frame.fillSize; ++j) {
  
-            const uint3 launch_index = optixGetLaunchIndex() * params.frame.factor;
-            const unsigned int image_index = (launch_index.y + j + params.frame.offset.y) * params.frame.size.x + (launch_index.x + i + params.frame.offset.x);
- 
-            normal /= static_cast<float>(samples_per_launch);
-            albedo /= static_cast<float>(samples_per_launch);
-            alpha /= static_cast<float>(samples_per_launch);
+            const uint3 launch_index = optixGetLaunchIndex()*params.frame.factor;
+            uint2 index = make_uint2(
+                launch_index.x + i + params.frame.offset.x,
+                launch_index.y + j + params.frame.offset.y);
+
+            index = clamp(index, make_uint2(0, 0), make_uint2(w-1, h-1));
+            
+            const unsigned int image_index = (index.y) * w + (index.x);            
 
             float3 color = (backplate * static_cast<float>(params.samples_per_launch)) * (1.0f - alpha) + result;
-
-
 
             float3 accum_color = color / static_cast<float>(params.samples_per_launch); // result / static_cast<float>(params.samples_per_launch);
 
@@ -485,6 +538,7 @@ extern "C" __global__ void __raygen__renderFrame()
                 const float                 a = 1.0f / static_cast<float>(subframe_index + 1);
                 const float3 accum_color_prev = make_float3(params.frame.accum_buffer[image_index]);
                 accum_color = lerp(accum_color_prev, accum_color, a);
+               
             }
             params.frame.accum_buffer[image_index] = make_float4(accum_color, 1.0f);
             params.frame.frame_buffer[image_index] = make_color(accum_color);
@@ -492,6 +546,7 @@ extern "C" __global__ void __raygen__renderFrame()
             params.frame.normal_buffer[image_index] = make_float4(normal, 1.0f);
             params.frame.color_buffer[image_index] = make_float4(accum_color, 1.0f);
             params.frame.albedo_buffer[image_index] = make_float4(albedo, 1.0f);
+
         }
     }
 }
@@ -514,7 +569,7 @@ extern "C" __global__ void __closesthit__radiance()
     float3 N = faceforward(N_0, -ray_dir, N_0);
 
     const float t = optixGetRayTmax();
-    const float rayTime = 0.f;
+    const float rayTime = 0.0f;
     const float3 P = optixGetWorldRayOrigin() + t * ray_dir;    
 
     float outEta;

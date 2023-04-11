@@ -171,6 +171,7 @@ class Random
 {
 public:
 
+	//! bm: this one is on use
 	CUDA_CALLABLE inline Random(int seed = 0)
 	{
 		seed1 = 315645664 + seed;

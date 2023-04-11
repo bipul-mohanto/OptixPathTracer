@@ -27,7 +27,10 @@
 //
 
 #pragma once
+// Random number generators (RNG)
 
+// Tiny Encryption Algorithm (TEA) to calculate a the seed per launch index and iteration.
+// This results in a ton of integer instructions! Use the smallest N necessary.
 template<unsigned int N>
 static __host__ __device__ __inline__ unsigned int tea( unsigned int val0, unsigned int val1 )
 {
@@ -45,7 +48,8 @@ static __host__ __device__ __inline__ unsigned int tea( unsigned int val0, unsig
   return v0;
 }
 
-// Generate random unsigned int in [0, 2^24)
+
+
 static __host__ __device__ __inline__ unsigned int lcg(unsigned int &prev)
 {
   const unsigned int LCG_A = 1664525u;
@@ -54,12 +58,40 @@ static __host__ __device__ __inline__ unsigned int lcg(unsigned int &prev)
   return prev & 0x00FFFFFF;
 }
 
+// Return a random sample in the range [0, 1) with a simple Linear Congruential Generator.
+/*
+* optix_apps
+__forceinline__ __device__ float lcg(unsigned int& previous)
+{
+    previous = previous * 1664525u + 1013904223u;
+
+    return float(previous & 0x00FFFFFF) / float(0x01000000u); // Use the lower 24 bits.
+    // return float(previous >> 8) / float(0x01000000u);      // Use the upper 24 bits
+}
+
+// Convenience function to generate a 2D unit square sample.
+__forceinline__ __device__ float2 lcg2(unsigned int& previous)
+{
+    float2 s;
+
+    previous = previous * 1664525u + 1013904223u;
+    s.x = float(previous & 0x00FFFFFF) / float(0x01000000u); // Use the lower 24 bits.
+    //s.x = float(previous >> 8) / float(0x01000000u);      // Use the upper 24 bits
+
+    previous = previous * 1664525u + 1013904223u;
+    s.y = float(previous & 0x00FFFFFF) / float(0x01000000u); // Use the lower 24 bits.
+    //s.y = float(previous >> 8) / float(0x01000000u);      // Use the upper 24 bits
+
+    return s;
+}
+*/
 static __host__ __device__ __inline__ unsigned int lcg2(unsigned int &prev)
 {
   prev = (prev*8121 + 28411)  % 134456;
   return prev;
 }
 
+//? what are these two algorithms?
 // Generate random float in [0, 1)
 static __host__ __device__ __inline__ float rnd(unsigned int &prev)
 {
@@ -70,3 +102,5 @@ static __host__ __device__ __inline__ unsigned int rot_seed( unsigned int seed, 
 {
     return seed ^ frame;
 }
+
+

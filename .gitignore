@@ -1,5 +1,11 @@
 BUILD
 build
+cmake-build-debug
+cmake-build-debug-visual-studio
+cmake-build-release
+cmake-build-release-visual-studio
+.idea
+
 01HelloRaytracing/
 02HelloRaytracing/
 03HelloRaytracing/

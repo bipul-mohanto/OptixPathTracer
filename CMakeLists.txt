@@ -516,6 +516,7 @@ add_subdirectory(04HelloRaytracing) #works
 add_subdirectory(HelloPathtracing)
 #add_subdirectory(HelloPathtracing_V1)
 add_subdirectory(HelloPathtracing_V2)
+add_subdirectory(HelloPathtracing_V3)
 #################################################################
 
 # Now that everything is done, indicate that we have finished configuring at least once.

@@ -131,7 +131,7 @@ void displaySubframe(sutil::CUDAOutputBuffer<uint32_t>& output_buffer, sutil::GL
 void initLaunchParams(SampleRenderer& pathtracer) {
     LaunchParams& params = pathtracer.launchParams;
 
-    params.samples_per_launch = 4;
+    params.samples_per_launch = 64;
     params.frame.subframe_index = 0u;
 
     const float light_size = 200.f;
@@ -168,11 +168,11 @@ extern "C" int main(int ac, char** av)
         boxMat.flags |= MATERIAL_FLAG_SHADOW_CATCHER;
         addBox(model, boxMat, make_float3(0, -0.1, 0), make_float3(4.0, 0.1, 4.0));*/
 
-        //Model* model = loadOBJ("C:/Users/local-admin/Desktop/PRayGround/graphics/crytek_sponza/sponza.obj");
-        Model* model = loadOBJ("C:/Users/local-admin/Desktop/PRayGround/graphics/San_Miguel/san-miguel.obj");
+        Model* model = loadOBJ("C:/Users/local-admin/Desktop/PRayGround/resources/model/crytek_sponza/sponza.obj");
+        //Model* model = loadOBJ("C:/Users/local-admin/Desktop/PRayGround/graphics/San_Miguel/san-miguel.obj");
     
         ProbeData probe;
-        loadProbe(probe, "C:/Users/local-admin/Desktop/PRayGround/resources/image/alps_field_4k.hdr");      
+        loadProbe(probe, "C:/Users/local-admin/Desktop/PRayGround/resources/image/outdoor_workshop_4k.hdr");      
         //loadProbe(probe, "G:/Raytracing/Projects/st_fagans_interior_8k.hdr");
         
         //loadProbe(probe, "G:/Raytracing/Projects/loft.hdr");
@@ -186,10 +186,16 @@ extern "C" int main(int ac, char** av)
         //    1.0f);
 
 
-        // -10, 2, 0),
-        camera = sutil::Camera(make_float3(26,8,-2), 
-            make_float3(0.f,0.f,0.f),
-            make_float3(0.f,1.f,0.f),
+        // 
+        //camera = sutil::Camera(make_float3(26,8,-2), 
+        //    make_float3(0.f,0.f,0.f),
+        //    make_float3(0.f,1.f,0.f),
+        //    35,
+        //    1.0f);
+        //! for crytek-sponza     
+        camera = sutil::Camera(/*from*/make_float3(-1293.07f, 154.681f, 1.0f),
+            /* at */make_float3(0.f, 200.f, 0.f),
+            /* up */make_float3(0.f, 1.f, 0.f),
             35,
             1.0f);
 

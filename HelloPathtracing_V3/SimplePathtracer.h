@@ -30,9 +30,11 @@
 #include <sutil/Camera.h>
 #include <sutil/Matrix.h>
 #include <sutil/sutil.h>
-
 #include "maths.h"
-//! bm: sutil.cpp contains imgui headers
+
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_glfw.h>
+#include <imgui/imgui_impl_opengl3.h>
 
 /*! a sample OptiX-7 renderer that demonstrates how to set up
     context, module, programs, pipeline, SBT, etc, and perform a
@@ -64,6 +66,8 @@ class SampleRenderer
     void setProbe(const ProbeData& probe);
 
     bool denoiserOn = true;
+
+    void draw();
 
     protected:
     // ------------------------------------------------------------------

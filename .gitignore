@@ -5,6 +5,7 @@ cmake-build-debug-visual-studio
 cmake-build-release
 cmake-build-release-visual-studio
 .idea
+.git
 
 01HelloRaytracing/
 02HelloRaytracing/
@@ -19,3 +20,4 @@ openxr/
 Rendering/
 openxr_loader.lib
 openxr_loaderd.lib
+Hidden/

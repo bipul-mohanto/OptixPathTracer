@@ -1,9 +1,18 @@
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "support/stb/stb_image_write.h"
+//#define STB_IMAGE_WRITE_IMPLEMENTATION
+//#include "support/stb/stb_image_write.h"
+//#define STB_IMAGE_IMPLEMENTATION
+//#include "support/stb/stb_image.h"
+
+#ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
+#endif
+#include <stb/stb_image.h>
+#ifndef STB_IMAGE_WRITE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#endif
+#include <stb/stb_image_write.h>
 
 
-#include "support/stb/stb_image.h"
 
 #include "SimplePathtracer.h"
 #include "Probe.h"
@@ -74,16 +83,9 @@ static void keyCallback(GLFWwindow* window, int32_t key, int32_t /*scancode*/, i
             glfwSetWindowShouldClose(window, true);
         }
     }
-    else if (key == GLFW_KEY_G)
+    else if (key == GLFW_KEY_S)//bm
     {
-        // toggle UI draw
-         //TODO: add functionality
-        std::cout << "null- G key\n";
-    }
-    else if (key == GLFW_KEY_D)
-    {
-        std::cout << "null- D key\n";
-        //TODO: debug view 
+  
     }
 }
 
@@ -241,15 +243,20 @@ extern "C" int main(int ac, char** av)
         fbSize = make_int2(1200, 1024); // 3840,2160);
         sample.resize(fbSize);
 
-        initLaunchParams(sample);
+        //bm, commented, no effect!!!
+        //initLaunchParams(sample);
+
         sample.setProbe(probe);
 
         // %bm  what!!!! render() has no functionality!!!!!!!!!!!!!!!!!!!!
-        sample.render();
+        //sample.render();
+
+        sample.draw();
+
 
         std::vector<uint32_t> pixels(fbSize.x * fbSize.y);        
 
-        GLFWwindow* window = sutil::initUI("Toy fov-optix PathTracer V2", fbSize.x, fbSize.y);
+        GLFWwindow* window = sutil::initUI("Toy fov-optix PathTracer V3", fbSize.x, fbSize.y);
  
         glfwSetMouseButtonCallback(window, mouseButtonCallback);
         glfwSetCursorPosCallback(window, cursorPosCallback);
@@ -289,7 +296,6 @@ extern "C" int main(int ac, char** av)
                 sample.launchParams.frame.c.x = cposx;
                 sample.launchParams.frame.c.y = cposy;
 
-
                 auto t0 = std::chrono::steady_clock::now();
                 glfwPollEvents();
 
@@ -318,40 +324,41 @@ extern "C" int main(int ac, char** av)
                 display_time += t1 - t0;
 
                 //!TODO: need to replace with better imgui UI
-                sutil::displayStats( state_update_time, render_time, display_time, cposx, cposy );
+                //sutil::displayStats( state_update_time, render_time, display_time, cposx, cposy );
+ 
 
 
                 glfwSwapBuffers(window);
 
                 sample.launchParams.frame.subframe_index += 1;
 
+                // write buffer
+                //stbi_write_png("name.png", fbSize.y, fbSize.x, 3, output_buffer, fbSize.y*4);
 
             } while (!glfwWindowShouldClose(window));
             CUDA_SYNC_CHECK();
         }
 
         sutil::cleanupUI(window);
-        //!--------------------writing as image 
         //!  //!TODO: fix image saving with keyboard input/ definite frame number    
-        /*
-        sample.downloadPixels(pixels.data());
 
-        sutil::ImageBuffer buffer;
-        buffer.data = pixels.data();
-        buffer.width = fbSize.x;
-        buffer.height = fbSize.y;
-        buffer.pixel_format = sutil::BufferImageFormat::UNSIGNED_BYTE4;
-        sutil::displayBufferWindow(*av, buffer);
+        //sample.downloadPixels(pixels.data());
 
-        const std::string fileName = "osc_example2.png";
-        stbi_write_png(fileName.c_str(), fbSize.x, fbSize.y, 4,
-            pixels.data(), fbSize.x * sizeof(uint32_t));
-        std::cout 
-            << std::endl
-            << "Image rendered, and saved to " << fileName << " ... done." << std::endl            
-            << std::endl;
-            */
-        //----------------------------------------------------------------------------
+        //sutil::ImageBuffer buffer;
+        //buffer.data = pixels.data();
+        //buffer.width = fbSize.x;
+        //buffer.height = fbSize.y;
+        //buffer.pixel_format = sutil::BufferImageFormat::UNSIGNED_BYTE4;
+        //sutil::displayBufferWindow(*av, buffer);
+
+        //const std::string fileName = "osc_example2.png";
+        //stbi_write_png(fileName.c_str(), fbSize.x, fbSize.y, 4,
+        //    pixels.data(), fbSize.x * sizeof(uint32_t));
+        //std::cout
+        //    << std::endl
+        //    << "Image rendered, and saved to " << fileName << " ... done." << std::endl
+        //    << std::endl;
+
     }
     catch (std::runtime_error& e) {
         std::cout  << "FATAL ERROR: " << e.what() << std::endl;

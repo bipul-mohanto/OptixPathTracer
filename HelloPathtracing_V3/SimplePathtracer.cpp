@@ -81,7 +81,7 @@ void SampleRenderer::render()
     if (launchParams.frame.size.x == 0) 
         return;
 
-#ifdef FOV_OFF
+#ifdef FOV_ON
     //! non-foveation part
  
     launchParamsBuffer.upload(&launchParams, 1);
@@ -91,7 +91,7 @@ void SampleRenderer::render()
     // launchParams.c.x, launchParams.c.y);//512, 512);
     launchParams.frame.r_outer = 1000000000;
     launchParams.frame.r_inner = 0;//356;//200; outer_radius 
-    launchParams.samples_per_launch = 64; // send to device side
+    launchParams.samples_per_launch = 2; // send to device side
     launchParams.frame.offset = make_uint2(0, 0);
     launchParams.frame.redraw = 0;
 
@@ -299,6 +299,61 @@ void SampleRenderer::setProbe(const ProbeData& probe)
     launchParams.probe.height = probeData.height;
 
     launchParams.probe.offset = probeData.offset;
+}
+void SampleRenderer::draw() {
+    // ---------------------------------------imgui
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+
+    // TODO: better dockspace
+    ImGui::SliderFloat("White", &launchParams.white, 0.01f, 1.0f);
+    ImGui::Text("Camera info:");
+    //ImGui::Text("Origin: %f %f %f", camera.eye().x(), camera.origin().y(), camera.origin().z());
+    //ImGui::Text("Lookat: %f %f %f", camera.lookat().x(), camera.lookat().y(), camera.lookat().z());
+    //ImGui::Text("Up: %f %f %f", camera.up().x(), camera.up().y(), camera.up().z());
+
+    /*float farclip = camera.farClip();
+    ImGui::SliderFloat("far clip", &farclip, 500.0f, 10000.0f);
+    if (farclip != camera.farClip()) {
+        camera.setFarClip(farclip);
+        camera_update = true;
+    }*/
+
+    ImGui::Text("Frame rate: %.3f ms/frame (%.2f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    //ImGui::Text("Render time: %.3f ms/frame", render_time * 1000.0f);
+    //ImGui::Text("Subframe index: %d", params.frame);
+
+    ImGuiIO& io = ImGui::GetIO();
+
+    if (ImGui::IsMousePosValid())
+    {
+        ImGui::Text("Mouse pos: (%g, %g)", io.MousePos.x, io.MousePos.y);
+
+        // sending gaze position, using imgui cursor 
+        launchParams.frame.c.x = io.MousePos.x;
+        launchParams.frame.c.y = io.MousePos.y;
+    }
+    else
+        ImGui::Text("Mouse pos: <INVALID>");
+
+
+    //if (ImGui::TreeNode("Plotting"))
+    //{
+    //    static bool animate = true;
+    //    ImGui::Checkbox("Animate", &animate);
+    //    static int render_time_offset = 0;
+
+    //    {
+
+    //    }
+    //}
+    ImGui::End();
+
+    //    ImGui::ShowDemoWindow();
+
+    ImGui::Render();
 }
 
 void SampleRenderer::initOptix()

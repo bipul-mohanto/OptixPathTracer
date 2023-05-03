@@ -82,6 +82,7 @@ struct LaunchParams
 
     Probe probe; 
     //bm: probability
+    float white;
 };
 
 struct RayGenData

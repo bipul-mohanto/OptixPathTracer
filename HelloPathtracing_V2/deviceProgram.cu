@@ -27,11 +27,10 @@
 #include "Disney.cuh"
 #include "maths.h"
 
-//bm
-//#include <texture_indirect_functions.h>
-
+// bm: these two has no effect at all
 //#define USE_JITTERED_UNIFORM
-#define USE_STRATIFIED
+//#define USE_STRATIFIED
+
 #define kProbeSamples 1.f //k for constant? 
 #define kBsdfSamples 1.f // why?
 
@@ -46,11 +45,10 @@ extern "C" {
 //
 //
 //---------------------------------------------------------------------------
-
-const int RAY_STATE_FLAGS_DONE               = 1 << 0;//1, why
-const int RAY_STATE_FLAGS_SECONDARY_RAY      = 1 << 1;//2, why
-//const int RAY_STATE_FLAGS_SHADOW_RAY       = 1 << 2;//4
-//the secondary ray is the shadow ray, no use of this value at this moment 
+const int RAY_STATE_FLAGS_DONE               = 1 << 0;//0, why
+const int RAY_STATE_FLAGS_SECONDARY_RAY      = 1 << 1;//1, why
+const int RAY_STATE_FLAGS_SHADOW_RAY       = 1 << 2;//2
+//bm: the secondary ray is the shadow ray, no use of this value at this moment 
 
 struct RadiancePRD
 {
@@ -63,24 +61,22 @@ struct RadiancePRD
     float3       normal;
     float3       albedo;
 
-    float4       lightSamples;
+    //bm: no use
+    //float4       lightSamples;
 
 
     float bsdfPdf = 1.0f;    // why???
     float3 pathThroughput;
-    float rayEta = 1.0f;
+    float rayEta = 1.0f; //why 1?
     float3 rayAbsorption;
     BSDFType rayType = eReflected;    //Disney
     //BSDFType rayType = eSpecular;
     
-
     int depth;
     int stateFlags = 0;
 
     unsigned int seed;
     Random       rand;
-
-   
 };
 
 
@@ -146,8 +142,9 @@ static __forceinline__ __device__ void setPayloadOcclusion(bool occluded)
     optixSetPayload_0(static_cast<unsigned int>(occluded));
 }
 
-
-static __forceinline__ __device__ void cosine_sample_hemisphere(const float u1, const float u2, float3& p)
+//!bm: no use, commenting now 
+/*
+static __forceinline__ __device__ void cosine_sample_hemisphere(const float u1, const float u2, float3& p)// where is the use?
 {
     // Uniformly sample disk.
     const float r = sqrtf(u1);
@@ -158,6 +155,7 @@ static __forceinline__ __device__ void cosine_sample_hemisphere(const float u1, 
     // Project up to hemisphere.
     p.z = sqrtf(fmaxf(0.0f, 1.0f - p.x * p.x - p.y * p.y));
 }
+*/
 
 static __forceinline__ __device__ void traceRadiance(
     OptixTraversableHandle handle,
@@ -168,7 +166,7 @@ static __forceinline__ __device__ void traceRadiance(
     RadiancePRD* prd
 )
 {
-    // TODO: deduce stride from num ray-types passed in params
+    // TODO: deduce stride from num ray-types passed in params (???)
 
     unsigned int u0, u1;
     packPointer(prd, u0, u1);
@@ -221,6 +219,7 @@ extern "C" __global__ void __miss__radiance()
     RadiancePRD* prd = getPRD<RadiancePRD>();
     const float3 ray_dir = optixGetWorldRayDirection();
 
+    //bm: already was commented 
     /*float weight = 1.0f;
     // probability that this dir was already sampled by probe sampling
     float skyPdf = ProbePdf(params.probe, ray_dir);
@@ -232,6 +231,7 @@ extern "C" __global__ void __miss__radiance()
     weight = cbsdf * prd->bsdfPdf / (cbsdf * prd->bsdfPdf + csky * skyPdf);
 
     prd->radiance += weight * make_float3(ProbeEval(params.probe, ProbeDirToUV(ray_dir))) * prd->pathThroughput;*/
+
     prd->albedo = make_float3(0.f);
     prd->normal = make_float3(0.f);
 
@@ -359,13 +359,14 @@ extern "C" __global__ void __raygen__renderFrame()
     const float3 V = params.camera.V;
     const float3 W = params.camera.W;
     uint3  idx = optixGetLaunchIndex();
+
     const unsigned int    subframe_index = params.frame.subframe_index;
 
     // bm: this was wrong, made foveated region 4spp, replaced with next statement, before i value  
     //int samples_per_launch = (subframe_index == 0) ? 4 : params.samples_per_launch;
 
     int samples_per_launch = params.samples_per_launch;
-    int i = samples_per_launch;
+    int i = samples_per_launch;//why I need previous line?
 
 //! ------------------------- random seed generator
      unsigned int seed = tea<4>(idx.y * w + idx.x, subframe_index);
@@ -383,7 +384,6 @@ extern "C" __global__ void __raygen__renderFrame()
 //-------------------------------------------------------
     float3 result = make_float3(0.0f);
 
-
     const uint2    launch_index = make_uint2(optixGetLaunchIndex());
     idx = idx * params.frame.factor + make_uint3(params.frame.offset, 0);
 
@@ -399,13 +399,11 @@ extern "C" __global__ void __raygen__renderFrame()
     float3 albedo = make_float3(0.f);
     float3 alpha = make_float3(0.f);    
 
-
-    float3 backplate = make_float3(0.f);   //result
-
-    
+    float3 backplate = make_float3(0.f);   //result? then what is result?
+        
     do
     {        
-        float3 directLight = make_float3(0.0f); // bm: can add effect 
+        float3 directLight = make_float3(0.0f); // bm: can add effect on result
         float3 indirectLight = make_float3(0.0f);
 
         RadiancePRD prd;
@@ -480,9 +478,9 @@ extern "C" __global__ void __raygen__renderFrame()
             }           
             
 
-            //! bmray bounce termination (VVI)
+            //! bm: ray bounce termination (VVI)
             
-            if ((prd.stateFlags & RAY_STATE_FLAGS_DONE) || prd.depth >= 3)
+            if ((prd.stateFlags & RAY_STATE_FLAGS_DONE) || prd.depth >= 3) //no effect with bounce
                 break;
          
             //!TODO RR, variable for depth

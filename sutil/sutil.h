@@ -114,7 +114,7 @@ SUTILAPI void displayStats( std::chrono::duration<double>& state_update_time,
                             std::chrono::duration<double>& render_time,
                             std::chrono::duration<double>& display_time, int cursor_x, int cursor_y );
 
-// Display a short string starting at x,y.
+// Display a short string starting at x,y position
 SUTILAPI void displayText( const char* text, float x, float y );
 
 // Blocking sleep call

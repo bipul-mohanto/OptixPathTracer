@@ -1,3 +1,5 @@
+#pragma once 
+
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "support/stb/stb_image_write.h"
 #define STB_IMAGE_IMPLEMENTATION
@@ -13,6 +15,19 @@
 #include <sutil/Trackball.h>
 
 #include <GLFW/glfw3.h>
+
+// ImGui
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_glfw.h>
+#include <imgui/imgui_impl_opengl3.h>
+
+// bm, for saving files
+#include <fstream>
+#include <iterator>
+#include <string>
+#include <vector>
+
+#define USE_ENV_LIGHT_OFF
 
 bool resize_dirty = false;
 bool minimized = false;
@@ -183,18 +198,17 @@ extern "C" int main(int ac, char** av)
     */
 
 // Test Models
-    //Model* model = loadOBJ("C:/Users/local-admin/Desktop/PRayGround/resources/model/crytek_sponza/sponza.obj");
+    Model* model = loadOBJ("C:/Users/local-admin/Desktop/PRayGround/resources/model/crytek_sponza/sponza.obj");
     
     //Model* model = loadOBJ("C:/Users/local-admin/Desktop/PRayGround/resources/model/San_Miguel/san-miguel.obj");
 
-    Model* model = loadOBJ("C:/Users/local-admin/Desktop/PRayGround/resources/model/Bistro_obj/Interior/interior.obj");
+    //Model* model = loadOBJ("C:/Users/local-admin/Desktop/PRayGround/resources/model/Bistro_obj/Interior/interior.obj");
 
     //Model* model = loadOBJ("C:/Users/local-admin/Desktop/PRayGround/resources/model/salle_de_bain/salle_de_bain.obj");
 
 
 //!------------------------------------------ environment lighting
-#define USE_ENV_LIGHT
-#ifdef USE_ENV_LIGHT
+#ifdef USE_ENV_LIGHT_ON
 
         ProbeData probe;
         loadProbe(probe, "C:/Users/local-admin/Desktop/PRayGround/resources/image/outdoor_workshop_4k.hdr");
@@ -206,11 +220,11 @@ extern "C" int main(int ac, char** av)
 #endif
 //!--------------------------------------------------------- bm: camera inputs
 //! for crytek-sponza     
-     //camera = sutil::Camera(/*from*/make_float3(-1293.07f, 154.681f, 1.0f),
-     //       /* at */make_float3(0.f,200.f,0.f),
-     //       /* up */make_float3(0.f,1.f,0.f),
-     //       35,
-     //       1.0f);
+     camera = sutil::Camera(/*from*/make_float3(-1293.07f, 154.681f, 1.0f),
+            /* at */make_float3(0.f,200.f,0.f),
+            /* up */make_float3(0.f,1.f,0.f),
+            35,
+            1.0f);
 
 ////! for san-miguel
 //     camera = sutil::Camera(make_float3(26, 8, -2),
@@ -226,11 +240,11 @@ extern "C" int main(int ac, char** av)
           //  35,
           //  1.0f);
 // for bistro indoor, incomplete
-        camera = sutil::Camera(make_float3(50, 40, -20),
-            make_float3(0.f, 0.f, 0.f),
-            make_float3(0.f, 1.f, 0.f),
-            60,
-            1.0f);
+        //camera = sutil::Camera(make_float3(50, 40, -20),
+        //    make_float3(0.f, 0.f, 0.f),
+        //    make_float3(0.f, 1.f, 0.f),
+        //    60,
+        //    1.0f);
 //--------------------------------------------------------------------
      // camera parameters 
         trackball.setCamera(&camera);
@@ -245,7 +259,7 @@ extern "C" int main(int ac, char** av)
         SampleRenderer sample(model);
         sample.setCamera(camera);
 
-//! ----------------------------------------------------------WINDOW HANDLING 
+//! -----------------------------------------------------WINDOW HANDLING 
         fbSize = make_int2(1200, 1024); // 3840,2160);
         sample.resize(fbSize);
 
@@ -262,7 +276,7 @@ extern "C" int main(int ac, char** av)
 
         std::vector<uint32_t> pixels(fbSize.x * fbSize.y);        
 
-        GLFWwindow* window = sutil::initUI("Toy fov-optix PathTracer V3", fbSize.x, fbSize.y);
+        GLFWwindow* window = sutil::initUI("V4", fbSize.x, fbSize.y);
  
         glfwSetMouseButtonCallback(window, mouseButtonCallback);
         glfwSetCursorPosCallback(window, cursorPosCallback);
@@ -302,6 +316,8 @@ extern "C" int main(int ac, char** av)
                 sample.launchParams.frame.c.x = cposx;
                 sample.launchParams.frame.c.y = cposy;
 
+
+
                 auto t0 = std::chrono::steady_clock::now();
                 glfwPollEvents();
 
@@ -329,8 +345,26 @@ extern "C" int main(int ac, char** av)
                 t1 = std::chrono::steady_clock::now();
                 display_time += t1 - t0;
 
+
+                //std::ofstream file_name ("C:/Users/local-admin/Desktop/optixpathtracer/HelloPathtracing_V4/dataFile.dat", std::ios::app);
+                //file_name.open("C:/Users/local-admin/Desktop/optixpathtracer/HelloPathtracing_V4/dataFile.dat"); // no need open
+                //file_name << "x_pos" << '\t' << "y_pos" <<  '\n';
+               // file_name << cposx << '\t' << cposy << '\n';*/
+                //file_name.close(); // no need close 
+//--------------------------------------------------------------------
                 //!TODO: need to replace with better imgui UI
                 sutil::displayStats( state_update_time, render_time, display_time, cposx, cposy );
+
+                std::ofstream file2 ("C:/Users/local-admin/Desktop/optixpathtracer/HelloPathtracing_V4/Second.dat", std::ios::app);
+                file2 << state_update_time.count() << '\t' << render_time.count() << '\t' << display_time.count() << '\t' << cposx << '\t' << cposy << '\n';
+               
+               //sutil::newImguiWindow(state_update_time, render_time, display_time, cposx, cposy);
+                
+              
+
+ 
+
+//--------------------------------------------------------------------
  
 
 

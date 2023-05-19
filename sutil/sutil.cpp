@@ -744,7 +744,10 @@ void displayStats( std::chrono::duration<double>& state_update_time,
                  last_update_frames / std::chrono::duration<double>( cur_time - last_update_time ).count(),
                  ( durationMs( state_update_time ) / last_update_frames ).count(),
                  ( durationMs( render_time ) / last_update_frames ).count(),
-                 ( durationMs( display_time ) / last_update_frames ).count(),  cursor_x, cursor_y);
+                 ( durationMs( display_time ) / last_update_frames ).count(),  
+            cursor_x, 
+            cursor_y);
+
 
         last_update_time   = cur_time;
         last_update_frames = 0;
@@ -754,6 +757,64 @@ void displayStats( std::chrono::duration<double>& state_update_time,
     endFrameImGui();
 
     ++total_subframe_count;
+}
+
+// bm, tryuing to add a imgui window    
+void newImguiWindow(
+    std::chrono::duration<double>& state_update_time,
+    std::chrono::duration<double>& render_time,
+    std::chrono::duration<double>& display_time,
+    int cursor_x, 
+    int cursor_y) 
+{
+    constexpr std::chrono::duration<double> display_update_min_interval_time(0.5);
+    static int32_t                          total_subframe_count = 0;
+    static int32_t                          last_update_frames = 0;
+    static auto                             last_update_time = std::chrono::steady_clock::now();
+    static char                 display_text[128];
+
+    const auto cur_time = std::chrono::steady_clock::now();
+
+    beginFrameImGui();
+
+    /*ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();*/
+    last_update_frames++;
+
+    typedef std::chrono::duration<double, std::milli> durationMs;
+
+    if (cur_time - last_update_time > display_update_min_interval_time || total_subframe_count == 0)
+    {
+        ImGui::Begin("window name");
+        auto kk = last_update_frames / std::chrono::duration<double>(cur_time - last_update_time).count();
+        ImGui::Text("Frame Rate: ", kk);
+
+        auto ll = (durationMs(state_update_time) / last_update_frames).count();
+        ImGui::Text("state update: ", ll);
+
+        auto mm = (durationMs(render_time) / last_update_frames).count();
+        ImGui::Text("render time: ", mm);
+        auto nn = (durationMs(display_time) / last_update_frames).count();
+        ImGui::Text("display time: ", nn);
+        ImGui::Text("cursor (x,y): ", cursor_x, cursor_y);
+        
+        ImGuiIO& io = ImGui::GetIO();
+
+        last_update_time = cur_time;
+        last_update_frames = 0;
+        state_update_time = render_time = display_time = std::chrono::duration<double>::zero();  
+   ImGui::End();
+    }   
+
+ 
+    void endFrameImGui();    
+    //ImGui::Render();
+    //ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    
+    ++total_subframe_count;
+    
 }
 
 

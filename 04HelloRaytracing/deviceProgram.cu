@@ -166,7 +166,7 @@ extern "C" __global__ void __anyhit__radiance()
 
 extern "C" __global__ void __miss__radiance()
 {
-    *getPRD<float3>() = make_float3(1.0f);
+    *getPRD<float3>() = make_float3(0.0f, 0.0f, 0.0f); //bm. make it red
 }
 
 extern "C" __global__ void __anyhit__shadow()

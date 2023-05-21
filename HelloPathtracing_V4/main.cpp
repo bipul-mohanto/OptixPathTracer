@@ -316,8 +316,6 @@ extern "C" int main(int ac, char** av)
                 sample.launchParams.frame.c.x = cposx;
                 sample.launchParams.frame.c.y = cposy;
 
-
-
                 auto t0 = std::chrono::steady_clock::now();
                 glfwPollEvents();
 
@@ -345,25 +343,38 @@ extern "C" int main(int ac, char** av)
                 t1 = std::chrono::steady_clock::now();
                 display_time += t1 - t0;
 
-
-                //std::ofstream file_name ("C:/Users/local-admin/Desktop/optixpathtracer/HelloPathtracing_V4/dataFile.dat", std::ios::app);
-                //file_name.open("C:/Users/local-admin/Desktop/optixpathtracer/HelloPathtracing_V4/dataFile.dat"); // no need open
-                //file_name << "x_pos" << '\t' << "y_pos" <<  '\n';
-               // file_name << cposx << '\t' << cposy << '\n';*/
-                //file_name.close(); // no need close 
 //--------------------------------------------------------------------
-                //!TODO: need to replace with better imgui UI
+                //!TODO: need to replace displayStats with better imgui UI
                 sutil::displayStats( state_update_time, render_time, display_time, cposx, cposy );
+// bm: save data to file
+                std::ofstream file("C:/Users/local-admin/Desktop/optixpathtracer/HelloPathtracing_V4/savedData.dat", std::ios::app);
 
-                std::ofstream file2 ("C:/Users/local-admin/Desktop/optixpathtracer/HelloPathtracing_V4/Second.dat", std::ios::app);
-                file2 << state_update_time.count() << '\t' << render_time.count() << '\t' << display_time.count() << '\t' << cposx << '\t' << cposy << '\n';
+                std::vector<double>stateUpdateTime; 
+                std::vector<double>renderTime; 
+                std::vector<double>displayTime; 
+                std::vector<double>positionX; 
+                std::vector<double>positionY; 
+
+                stateUpdateTime.push_back(state_update_time.count());
+                renderTime.push_back(render_time.count());
+                displayTime.push_back(display_time.count());
+                positionX.push_back(cposx); 
+                positionY.push_back(cposy); 
+                if (!file) {
+                    					std::cout << "Error opening file" << std::endl;
+					return 1;
+                }
+                else {
+                    for (int i = 0; i < stateUpdateTime.size(); i++) {
+						file << stateUpdateTime[i] << '\t' << renderTime[i] << '\t' << displayTime[i] << '\t' << positionX[i] << '\t' << positionY[i] << '\n';
+					}
+				}
+                /*for(double value: stateUpdateTime)
+					file << value  << '\n';*/
+
+                //file << state_update_time.count() << '\t' << render_time.count() << '\t' << display_time.count() << '\t' << cposx << '\t' << cposy << '\n';
                
                //sutil::newImguiWindow(state_update_time, render_time, display_time, cposx, cposy);
-                
-              
-
- 
-
 //--------------------------------------------------------------------
  
 

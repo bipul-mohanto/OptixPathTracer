@@ -759,7 +759,7 @@ void displayStats( std::chrono::duration<double>& state_update_time,
     ++total_subframe_count;
 }
 
-// bm, tryuing to add a imgui window    
+// bm, trying to add a imgui window, not working yet    
 void newImguiWindow(
     std::chrono::duration<double>& state_update_time,
     std::chrono::duration<double>& render_time,

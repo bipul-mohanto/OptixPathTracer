@@ -82,6 +82,9 @@ struct LaunchParams
 
     Probe probe; 
     //bm: probability
+
+    int2 viewportSize;
+
     float white;
 };
 

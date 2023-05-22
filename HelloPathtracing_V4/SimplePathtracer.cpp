@@ -17,7 +17,7 @@
 #include <sutil/Matrix.h>
 #include <sutil/vec_math.h>
 
-#define FOV_OFF
+#define FOV_ON
 
 /// @TODO: tone-map
 //#include "toneMap.h"
@@ -91,9 +91,13 @@ void SampleRenderer::render()
     // launchParams.c.x, launchParams.c.y);//512, 512);
     launchParams.frame.r_outer = 1000000000;
     launchParams.frame.r_inner = 0;//356;//200; outer_radius 
-    launchParams.samples_per_launch = 2; // send to device side
+    launchParams.samples_per_launch = 4; // send to device side
     launchParams.frame.offset = make_uint2(0, 0);
     launchParams.frame.redraw = 0;
+
+    // un-used for now
+    launchParams.viewportSize.x = 1200;
+    launchParams.viewportSize.y = 1024;
 
    
     //! bm: no difference

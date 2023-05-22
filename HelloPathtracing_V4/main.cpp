@@ -3,25 +3,25 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "support/stb/stb_image_write.h"
 #define STB_IMAGE_IMPLEMENTATION
-
 #include "support/stb/stb_image.h"
 
 #include "SimplePathtracer.h"
 #include "Probe.h"
-#include <sutil/sutil.h>
-#include <sutil/CUDAOutputBuffer.h>
+
+//#include <sutil/sutil.h>
+//#include <sutil/CUDAOutputBuffer.h>
 #include <sutil/GLDisplay.h>
-#include <sutil/Camera.h>
+//#include <sutil/Camera.h>
 #include <sutil/Trackball.h>
 
 #include <GLFW/glfw3.h>
 
 // ImGui
-#include <imgui/imgui.h>
-#include <imgui/imgui_impl_glfw.h>
-#include <imgui/imgui_impl_opengl3.h>
+//#include <imgui/imgui.h>
+//#include <imgui/imgui_impl_glfw.h>
+//#include <imgui/imgui_impl_opengl3.h>
 
-// bm, for saving files
+// bm, for saving data files
 #include <fstream>
 #include <iterator>
 #include <string>
@@ -32,10 +32,10 @@
 bool resize_dirty = false;
 bool minimized = false;
 int2 fbSize;
-
 sutil::Trackball trackball;
 sutil::Camera    camera;
 bool camera_changed = true;
+
 // Mouse state
 int32_t mouse_button = -1;
 
@@ -88,9 +88,9 @@ static void keyCallback(GLFWwindow* window, int32_t key, int32_t /*scancode*/, i
             glfwSetWindowShouldClose(window, true);
         }
     }
-    else if (key == GLFW_KEY_S)//bm
+    else if (key == GLFW_KEY_S)
     {
-  
+        //!TODO: save rendered image file
     }
 }
 
@@ -121,7 +121,6 @@ void handleCameraUpdate(SampleRenderer& renderer)
 
     camera.setAspectRatio(static_cast<float>(fbSize.x) / static_cast<float>(fbSize.y));
     //camera.UVWFrame(params.U, params.V, params.W);
-
     renderer.setCamera(camera);
 }
 
@@ -140,21 +139,21 @@ void displaySubframe(sutil::CUDAOutputBuffer<uint32_t>& output_buffer, sutil::GL
     );
 }
 
-// bm: no effect this function, isn't it redundant? 
-void initLaunchParams(SampleRenderer& pathtracer) {
-    LaunchParams& params = pathtracer.launchParams;
-
-     params.samples_per_launch = 4; 
-    params.frame.subframe_index = 0u;
-
-    const float light_size = 200.f;
-
-    params.light.emission = make_float3(15.0f, 15.0f, 15.0f);
-    params.light.corner = make_float3(-1000 - light_size, 1200, -light_size);
-    params.light.v1 = make_float3(2.f * light_size, 0, 0);
-    params.light.v2 = make_float3(0, 0, 2.f * light_size);        
-    params.light.normal = normalize(cross(params.light.v1, params.light.v2));
-}
+//! bm: no effect this function, isn't it redundant?, i keep commented 
+//void initLaunchParams(SampleRenderer& pathtracer) {
+//    LaunchParams& params = pathtracer.launchParams;
+//
+//     params.samples_per_launch = 4; 
+//    params.frame.subframe_index = 0u;
+//
+//    const float light_size = 200.f;
+//
+//    params.light.emission = make_float3(15.0f, 15.0f, 15.0f);
+//    params.light.corner = make_float3(-1000 - light_size, 1200, -light_size);
+//    params.light.v1 = make_float3(2.f * light_size, 0, 0);
+//    params.light.v2 = make_float3(0, 0, 2.f * light_size);        
+//    params.light.normal = normalize(cross(params.light.v1, params.light.v2));
+//}
 
 void loadProbe(ProbeData& probe, std::string hdrFile) {
     int resX, resY, channel;
@@ -168,9 +167,10 @@ void loadProbe(ProbeData& probe, std::string hdrFile) {
     probe.BuildCDF();
 }
 
-// bm: doing what? no solid background color?
+//!bm: modified with solid background 
 void loadColor(ProbeData& probe, float3 color){
-	int resX = 1200; // bm, should change according to fb size
+    //!TODO: bm, should change according to fb size
+    int resX = 1200; 
 	int resY = 1024;
 	int numPixels = resX * resY;
 	float4* data = new float4[numPixels];
@@ -198,47 +198,43 @@ extern "C" int main(int ac, char** av)
     */
 
 // Test Models
-    Model* model = loadOBJ("C:/Users/local-admin/Desktop/PRayGround/resources/model/crytek_sponza/sponza.obj");
+    //Model* model = loadOBJ("C:/Users/local-admin/Desktop/PRayGround/resources/model/crytek_sponza/sponza.obj");
     
-    //Model* model = loadOBJ("C:/Users/local-admin/Desktop/PRayGround/resources/model/San_Miguel/san-miguel.obj");
+    Model* model = loadOBJ("C:/Users/local-admin/Desktop/PRayGround/resources/model/San_Miguel/san-miguel.obj");
 
     //Model* model = loadOBJ("C:/Users/local-admin/Desktop/PRayGround/resources/model/Bistro_obj/Interior/interior.obj");
-
-    //Model* model = loadOBJ("C:/Users/local-admin/Desktop/PRayGround/resources/model/salle_de_bain/salle_de_bain.obj");
-
-
 //!------------------------------------------ environment lighting
 #ifdef USE_ENV_LIGHT_ON
 
         ProbeData probe;
         loadProbe(probe, "C:/Users/local-admin/Desktop/PRayGround/resources/image/outdoor_workshop_4k.hdr");
 #else        
-        ///@TODO: (bm) solid color lighting
+    //!bm: solid color background, white color (change the number for light intensity)
     ProbeData probe;
-    loadColor(probe, make_float3(1.0f, 1.0f, 1.0f));
+    loadColor(probe, make_float3(100.0f));
 
 #endif
 //!--------------------------------------------------------- bm: camera inputs
 //! for crytek-sponza     
-     camera = sutil::Camera(/*from*/make_float3(-1293.07f, 154.681f, 1.0f),
-            /* at */make_float3(0.f,200.f,0.f),
-            /* up */make_float3(0.f,1.f,0.f),
+     //camera = sutil::Camera(/*from*/make_float3(-1293.07f, 154.681f, 1.0f),
+     //       /* at */make_float3(0.f,200.f,0.f),
+     //       /* up */make_float3(0.f,1.f,0.f),
+     //       35,
+     //       1.0f);
+
+////! for san-miguel
+     camera = sutil::Camera(make_float3(26, 8, -2),
+            make_float3(0.f,0.f,0.f),
+            make_float3(0.f,1.f,0.f),
             35,
             1.0f);
 
-////! for san-miguel
-//     camera = sutil::Camera(make_float3(26, 8, -2),
-//            make_float3(0.f,0.f,0.f),
-//            make_float3(0.f,1.f,0.f),
-//            35,
-//            1.0f);
-
 //! for salle_de_bain
-          //camera = sutil::Camera(make_float3(-10, 10, 10),
-          //  make_float3(0.f,0.f,0.f),
-          //  make_float3(0.f,1.f,0.f),
-          //  35,
-          //  1.0f);
+    //camera = sutil::Camera(make_float3(-10, 10, 10),
+    //  make_float3(0.f,0.f,0.f),
+    //  make_float3(0.f,1.f,0.f),
+    //  35,
+    //  1.0f);
 // for bistro indoor, incomplete
         //camera = sutil::Camera(make_float3(50, 40, -20),
         //    make_float3(0.f, 0.f, 0.f),
@@ -260,17 +256,19 @@ extern "C" int main(int ac, char** av)
         sample.setCamera(camera);
 
 //! -----------------------------------------------------WINDOW HANDLING 
-        fbSize = make_int2(1200, 1024); // 3840,2160);
+        fbSize = make_int2(1200, 1024);
+        //!TODO:
+        //sample.launchParams.viewportSize.x, sample.launchParams.viewportSize.y); 
+        // 3840,2160);//1200,1024
         sample.resize(fbSize);
 
-        //bm, commented, no effect!!!
-        
-        initLaunchParams(sample);
+        //bm, commented, no effect!!!        
+        //initLaunchParams(sample);
 
         sample.setProbe(probe);
 
-        // %bm  what!!!! render() has no functionality!!!!!!!!!!!!!!!!!!!!
-        sample.render();
+        //%bm  what!!!! render() has no functionality!!!!!!!!!!!!!!!!!!!!
+        //sample.render();
 
 
 
@@ -365,8 +363,8 @@ extern "C" int main(int ac, char** av)
 					return 1;
                 }
                 else {
-                    for (int i = 0; i < stateUpdateTime.size(); i++) {
-						file << stateUpdateTime[i] << '\t' << renderTime[i] << '\t' << displayTime[i] << '\t' << positionX[i] << '\t' << positionY[i] << '\n';
+                    for (int i = 1; i < stateUpdateTime.size(); i++) {
+						file << i <<'\t' << stateUpdateTime[i] << '\t' << renderTime[i] << '\t' << displayTime[i] << '\t' << positionX[i] << '\t' << positionY[i] << '\n';
 					}
 				}
                 /*for(double value: stateUpdateTime)

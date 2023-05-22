@@ -131,7 +131,7 @@ void displaySubframe(sutil::CUDAOutputBuffer<uint32_t>& output_buffer, sutil::GL
 void initLaunchParams(SampleRenderer& pathtracer) {
     LaunchParams& params = pathtracer.launchParams;
 
-    params.samples_per_launch = 64;
+    params.samples_per_launch = 32;
     params.frame.subframe_index = 0u;
 
     const float light_size = 200.f;

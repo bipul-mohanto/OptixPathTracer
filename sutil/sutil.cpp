@@ -73,6 +73,13 @@
 #endif
 
 
+
+// bm, for saving data files
+#include <fstream>
+#include <iterator>
+#include <string>
+#include <vector>
+
 namespace sutil
 {
 
@@ -716,7 +723,7 @@ void displayFPS( unsigned int frame_count )
 void displayStats( std::chrono::duration<double>& state_update_time,
                           std::chrono::duration<double>& render_time,
                           std::chrono::duration<double>& display_time,
-                             int cursor_x, int cursor_y)
+                             int cursor_x, int cursor_y/*, unsigned int subframe_index*/)
 {
     constexpr std::chrono::duration<double> display_update_min_interval_time( 0.5 );
     static int32_t                          total_subframe_count = 0;
@@ -734,20 +741,36 @@ void displayStats( std::chrono::duration<double>& state_update_time,
     if( cur_time - last_update_time > display_update_min_interval_time || total_subframe_count == 0 )
     {
         sprintf( display_text,
-                 "frame rate  : %5.1f fps\n"
-                 "state update: %8.1f ms\n"
-                 "render      : %8.1f ms\n"
-                 "display     : %8.1f ms\n"
+                 "Frame Rate  : %3.3f fps\n",
+        /*         "state update: %4.3f ms\n"
+                 "render      : %4.3f ms\n"
+                 "display     : %4.3f ms\n"
                  "cursor x    : %d \n"
-                 "cursor y    : %d \n",
+                 "cursor y    : %d \n",           */     
 
-                 last_update_frames / std::chrono::duration<double>( cur_time - last_update_time ).count(),
+                 last_update_frames / std::chrono::duration<double>( cur_time - last_update_time ).count()
+            /*,
                  ( durationMs( state_update_time ) / last_update_frames ).count(),
                  ( durationMs( render_time ) / last_update_frames ).count(),
-                 ( durationMs( display_time ) / last_update_frames ).count(),  
-            cursor_x, 
-            cursor_y);
+                 ( durationMs( display_time ) / last_update_frames ).count(), cursor_x, 
+                                                                cursor_y */);
+        //-----------------------------------------
+        // save data (bm)
+        ///!TODO: better saving
+        double frame_rate = double(last_update_frames / std::chrono::duration<double>(cur_time - last_update_time).count());
 
+        std::ofstream dd ;
+        dd.open("C:/Users/local-admin/Desktop/FovTiX/HelloPathtracing_sv4_denoise/data.tsv", std::ios::app);
+
+        if (!dd) {
+            std::cout << "error!";
+            return ;
+        }else{
+            for (int i = 0; i < 1; ++i) {
+                dd << frame_rate << '\n';
+            }
+        }dd.close();
+//-----------------------------------------
 
         last_update_time   = cur_time;
         last_update_frames = 0;
@@ -825,7 +848,7 @@ void displayText( const char* text, float x, float y )
     ImGui::Begin( "TextOverlayFG", nullptr,
                   ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove
                       | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs );
-    ImGui::TextColored( ImColor( 0.7f, 0.7f, 0.7f, 1.0f ), "%s", text );
+    ImGui::TextColored( ImColor( 1.0f, 0.0f, 0.0f, 1.0f ), "%s", text );
     ImGui::End();
 }
 

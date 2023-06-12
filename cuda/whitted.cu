@@ -28,6 +28,7 @@
 #include <optix.h>
 
 #include <cuda/LocalGeometry.h>
+//#include <cuda/LocalShading.h>
 #include <cuda/helpers.h>
 #include <cuda/random.h>
 #include <sutil/vec_math.h>

@@ -79,7 +79,7 @@
 
 # This sets up the name of our project.  For our purposes the main thing this controls is
 # the name of the VS solution file.
-project(VFXRaytracing)
+project(FovTiX)#VFXRaytracing)
 
 # This enforces a particular version of CMake that we require to process the script files
 # properly.  We rely on CXX_STANDARD, which was added in CMake 3.1.
@@ -391,11 +391,12 @@ add_subdirectory(support)
 add_subdirectory(OptixUtils)
 
 add_subdirectory(04HelloRaytracing)
+add_subdirectory(HelloPathtracing_original)
+add_subdirectory(HelloPathtracing_sv)
+add_subdirectory(HelloPathtracing_sv2)
+add_subdirectory(HelloPathtracing_sv3)
+add_subdirectory(HelloPathtracing_sv4_denoise)
 
-add_subdirectory(HelloPathtracing)
-add_subdirectory(HelloPathtracing_V2)
-add_subdirectory(HelloPathtracing_V3)
-add_subdirectory(HelloPathtracing_V4)
 
 
 #################################################################

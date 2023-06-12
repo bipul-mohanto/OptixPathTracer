@@ -48,7 +48,7 @@ static __host__ __device__ __inline__ unsigned int tea( unsigned int val0, unsig
   return v0;
 }
 
-
+// Generate random unsigned int in [0, 2^24)
 
 static __host__ __device__ __inline__ unsigned int lcg(unsigned int &prev)
 {

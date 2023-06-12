@@ -112,7 +112,7 @@ SUTILAPI void displayFPS( unsigned total_frame_count );
 
 SUTILAPI void displayStats( std::chrono::duration<double>& state_update_time,
                             std::chrono::duration<double>& render_time,
-                            std::chrono::duration<double>& display_time, int cursor_x, int cursor_y );
+                            std::chrono::duration<double>& display_time, int cursor_x, int cursor_y/*, unsigned int subframe_index*/);
 
 SUTILAPI void newImguiWindow(
     std::chrono::duration<double>& state_update_time,

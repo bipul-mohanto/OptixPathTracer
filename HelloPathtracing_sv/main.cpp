@@ -192,7 +192,7 @@ extern "C" int main(int ac, char** av)
 
 //!------------------------------------------ environment lighting
         ProbeData probe;
-        loadProbe(probe, "C:/Users/local-admin/Desktop/PRayGround/resources/image/outdoor_workshop_4k.hdr");
+        loadProbe(probe, "C:/Users/local-admin/Desktop/PRayGround/resources/image/ehingen_hillside_02_8k.hdr");
         
         ///@TODO: (bm) solid color lighting
         //loadProbe(probe, make_float3(1.0f));
@@ -238,7 +238,7 @@ extern "C" int main(int ac, char** av)
         sample.setCamera(camera);
 
 //! ----------------------------------------------------------WINDOW HANDLING 
-        fbSize = make_int2(1200, 1024); // 3840,2160);
+        fbSize = make_int2(3840, 2160);// 1200, 1024); // 3840,2160);
         sample.resize(fbSize);
 
         initLaunchParams(sample);

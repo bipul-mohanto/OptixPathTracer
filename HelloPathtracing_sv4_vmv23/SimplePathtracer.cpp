@@ -18,7 +18,7 @@
 #include <sutil/vec_math.h>
 
 const int inner_radius = 157;
-const int outer_radius = 358;
+const int outer_radius = 515;//358;
 
 #define FOV_ON
 
@@ -84,7 +84,7 @@ void SampleRenderer::render()
 
 #ifdef FOV_OFF
     //! non-foveation part
- 
+    launchParams.frame.subframe_index = 0; // bm: accumulation off
     launchParamsBuffer.upload(&launchParams, 1);
     launchParams.frame.factor = make_uint3(1, 1, 1);
     launchParams.frame.fillSize = 1;
@@ -140,7 +140,7 @@ void SampleRenderer::render()
     launchParams.frame.r_inner = outer_radius;//200;//356;//200; outer_radius 
     launchParams.samples_per_launch = 1;
     launchParams.frame.offset = make_uint2(0, 0);
-    launchParams.frame.redraw = 0; // render each frame 0/1
+    launchParams.frame.redraw = 0; //0, render each frame 0/1, with/without accumulation
 
     launchParamsBuffer.upload(&launchParams, 1);
 
@@ -157,16 +157,18 @@ void SampleRenderer::render()
 
     int temp_frame = launchParams.frame.subframe_index;  
     
-    launchParams.frame.subframe_index = 0;
+    launchParams.frame.subframe_index = 0;//0 accumulation important to enable/disable accumulation
     launchParams.frame.factor = make_uint3(2, 2, 1);
-    launchParams.frame.fillSize = 1;//sv kept 2, black visible pixels
+    launchParams.frame.fillSize = 2;//sv kept 2, black visible pixels
     // larger the previous value, larger the pixel size, but 1 is keeping data from previous frame
     // performance has no impact
 
     launchParams.frame.r_outer = outer_radius + 2;//202;
     launchParams.frame.r_inner = inner_radius;//100;//356;//200; outer_radius 
     launchParams.samples_per_launch = 2;
-    launchParams.frame.offset = make_uint2(launchParams.frame.c.x - (outer_radius+2), launchParams.frame.c.y - (outer_radius+2));
+    //launchParams.frame.offset = make_uint2(0, 0);
+    launchParams.frame.offset = make_uint2(launchParams.frame.c.x - (outer_radius+2), launchParams.frame.c.y - (outer_radius+2)); // sv
+ //!problem_could_b_here_with_offset
     launchParams.frame.redraw = 1;// 1;
 
     launchParamsBuffer.upload(&launchParams, 1);
@@ -189,6 +191,7 @@ void SampleRenderer::render()
     launchParams.frame.r_outer = inner_radius + 1;//101 ;// 158;//101; //inner_radius
     launchParams.frame.r_inner = 0;
     launchParams.samples_per_launch = 8; 
+//    launchParams.frame.offset = make_uint2(0, 0);
     launchParams.frame.offset = make_uint2(launchParams.frame.c.x - (inner_radius+1), launchParams.frame.c.y - (inner_radius + 1));//  - 158,  - 158);
     launchParams.frame.redraw = 1;//1
 

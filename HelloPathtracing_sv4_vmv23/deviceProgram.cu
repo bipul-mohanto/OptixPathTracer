@@ -120,7 +120,7 @@ struct Onb // what is Onb? something related to normal,
     float3 m_normal;
 };
 
-// bm
+// bm, not working for now
 static __forceinline__ __device__ float3 reinhardToneMap(const float3& color, const float white)
 {
     const float luminance = 0.2126f * color.x + 0.7152f * color.y + 0.0722f * color.z;//luminance
@@ -128,22 +128,22 @@ static __forceinline__ __device__ float3 reinhardToneMap(const float3& color, co
 
 }
 // bm: not working at this moment (7.6.2023)
-static __forceinline__ __device__ float3 gaussianFilter(float3 color, float kernelSize, float sigma)
-{
-	float3 result = make_float3(0.0f);
-	float sum = 0.0f;
-	for (int x = -kernelSize; x <= kernelSize; ++x)
-	{
-		for (int y = -kernelSize; y <= kernelSize; ++y)
-		{
-			float2 offset = make_float2(x, y);
-			float weight = (1/(2*M_PI*sigma*sigma)) * expf(-(offset.x * offset.x + offset.y * offset.y) / (2.0f * sigma * sigma));
-			result += weight * color;
-			//sum += weight;
-		}
-	}
-	return result / sum;
-}
+//static __forceinline__ __device__ float3 gaussianFilter(float3 color, float kernelSize, float sigma)
+//{
+//	float3 result = make_float3(0.0f);
+//	float sum = 0.0f;
+//	for (int x = -kernelSize; x <= kernelSize; ++x)
+//	{
+//		for (int y = -kernelSize; y <= kernelSize; ++y)
+//		{
+//			float2 offset = make_float2(x, y);
+//			float weight = (1/(2*M_PI*sigma*sigma)) * expf(-(offset.x * offset.x + offset.y * offset.y) / (2.0f * sigma * sigma));
+//			result += weight * color;
+//			//sum += weight;
+//		}
+//	}
+//	return result / sum;
+//}
 
 
 static __forceinline__ __device__ void* unpackPointer(unsigned int i0, unsigned int i1)
@@ -218,7 +218,6 @@ static __forceinline__ __device__ void traceRadiance(
         RAY_TYPE_RADIANCE,        // missSBTIndex
         u0, u1);
 }
-
 
 static __forceinline__ __device__ bool traceOcclusion(
     OptixTraversableHandle handle,
@@ -472,6 +471,7 @@ extern "C" __global__ void __raygen__renderFrame()
         float3 ray_direction = normalize(d.x * U + d.y * V + W);
         float3 ray_origin = eye;         
 
+        // what is this backplate?
         backplate = make_float3(ProbeEval(params.probe, ProbeDirToUV(ray_direction)));
 
         for (;; )
@@ -553,7 +553,8 @@ extern "C" __global__ void __raygen__renderFrame()
             params.frame.accum_buffer[image_index] = make_float4(accum_color, 1.0f);
 #define EXPOSURE_CORR_ON
 #ifdef EXPOSURE_CORR_ON
-            float3 pprocessingExposureCorrected = float3(accum_color * pow(2.0f, 4.0f)) ; // bm: accum_color is the output final
+//! sv
+            float3 pprocessingExposureCorrected = float3(accum_color * pow(2.0f, 2.0f)) ; // bm: accum_color is the output final, 2^2 is a good candidat
             // pow(2.0f, 2.0f) // original
             //!TODO: interaction time is not doing the job, why?
             //params.frame.frame_buffer[image_index] = make_color(pprocessingExposureCorrected);
@@ -570,12 +571,12 @@ extern "C" __global__ void __raygen__renderFrame()
 #endif // TONE_MAPPING
 
 //TODO: denoising
-#define GAUSSIAN_OFF
-#ifdef GAUSSIAN_ON
-            params.frame.frame_buffer[image_index] = make_color(gaussianFilter(pprocessingExposureCorrected, 3.0f, 10.f));
-#else
-            params.frame.frame_buffer[image_index] = make_color(pprocessingExposureCorrected);
-#endif
+//#define GAUSSIAN_OFF
+//#ifdef GAUSSIAN_ON
+//            params.frame.frame_buffer[image_index] = make_color(gaussianFilter(pprocessingExposureCorrected, 3.0f, 10.f));
+//#else
+//            params.frame.frame_buffer[image_index] = make_color(pprocessingExposureCorrected);
+//#endif
 
            
 // bm: these buffers only for denoising part
@@ -652,6 +653,7 @@ extern "C" __global__ void __closesthit__radiance()
         outAbsorption = make_float3(0.0f);
     }
 
+    // for each hit, every light in the scene is sampled
     if((sbtData.material.flags & MATERIAL_FLAG_SHADOW_CATCHER) == 0){
         float3 lightSample = SampleLights(sbtData.material, prd->albedo, prd->rayEta, outEta, P, N, -ray_dir, prd->rand);
         prd->radiance += prd->pathThroughput * lightSample;

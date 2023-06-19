@@ -20,7 +20,7 @@
 #include <vector>
 
 // scenes
-//#define CRYTEK_SPONZA
+#define CRYTEK_SPONZA
 //#define SAN_MIGUEL
 //#define LOST_EMPIRE
 
@@ -196,7 +196,7 @@ extern "C" int main(int ac, char** av)
 /**
 * @environment lighting 
 */
-#define ENV_LIGHT_OFF
+#define ENV_LIGHT_ON
 #if defined(ENV_LIGHT_ON)
         ProbeData probe;
         loadProbe(probe, "C:/Users/local-admin/Desktop/PRayGround/resources/image/garden_nook_8k.hdr");
@@ -344,7 +344,7 @@ extern "C" int main(int ac, char** av)
 //--------------------------------------------------------------------
                 //!TODO: better imgui UI              
 
-                //sutil::displayStats( state_update_time, render_time, display_time, cposx, cposy/*, sample.launchParams.frame.subframe_index*/);
+                sutil::displayStats( state_update_time, render_time, display_time, cposx, cposy/*, sample.launchParams.frame.subframe_index*/);
 
 
                 //std::vector<double>stateUpdateTime; 

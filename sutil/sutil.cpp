@@ -760,7 +760,7 @@ void displayStats( std::chrono::duration<double>& state_update_time,
         double frame_rate = double(last_update_frames / std::chrono::duration<double>(cur_time - last_update_time).count());
 
         std::ofstream dd ;
-        dd.open("C:/Users/local-admin/Desktop/FovTiX/HelloPathtracing_sv4_denoise/data.tsv", std::ios::app);
+        dd.open("C:/Users/local-admin/Desktop/FovTiX/HelloPathtracing_sv4_vmv23/data.tsv", std::ios::app);
 
         if (!dd) {
             std::cout << "error!";

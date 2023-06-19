@@ -395,7 +395,7 @@ add_subdirectory(HelloPathtracing_original)
 add_subdirectory(HelloPathtracing_sv)
 add_subdirectory(HelloPathtracing_sv2)
 add_subdirectory(HelloPathtracing_sv3)
-add_subdirectory(HelloPathtracing_sv4_denoise)
+add_subdirectory(HelloPathtracing_sv4_vmv23)
 
 
 
